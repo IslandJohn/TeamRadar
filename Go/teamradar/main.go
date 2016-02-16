@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	//	"k8s.io/kubernetes/pkg/util/sets"
 	"net/http"
 	"os"
 	"strings"
@@ -95,7 +94,7 @@ func makeRequest(login *Login, verb string, url string, body string, code int, l
 }
 
 func pollRooms(d time.Duration, login *Login, listener *chan string) {
-	//roomMap := make(map[string]string)
+	roomMap := make(map[int]*Room)
 	roomTicker := time.NewTicker(d)
 	defer roomTicker.Stop()
 
@@ -113,8 +112,37 @@ func pollRooms(d time.Duration, login *Login, listener *chan string) {
 			continue
 		}
 
+		// added
+		newRoomMap := make(map[int]*Room)
+		for _, room := range rooms.Value {
+			newRoomMap[room.Id] = &room
+			if _, ok := roomMap[room.Id]; ok {
+				continue
+			}
+			json, err := json.Marshal(room)
+			if err != nil {
+				*listener <- fmt.Sprintf("error pollRooms %s", err)
+				continue
+			}
+			*listener <- fmt.Sprintf("room open %d %s", room.Id, json)
+			roomMap[room.Id] = &room
+		}
+
+		// removed
+		for _, room := range roomMap {
+			if _, ok := newRoomMap[room.Id]; ok {
+				continue
+			}
+			json, err := json.Marshal(*room)
+			if err != nil {
+				*listener <- fmt.Sprintf("error pollRooms %s", err)
+				continue
+			}
+			*listener <- fmt.Sprintf("room close %d %s", room.Id, json)
+			delete(roomMap, room.Id)
+		}
+
 		// if 401 or "auth" header, need U/P from speaker, block everywhere?
-		// determine room added, removed
 		// for added rooms start ticker, for removed rooms stop ticker
 		// need to signal "done"?
 	}
