@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -25,28 +26,28 @@ type User struct {
 }
 type RoomUser struct {
 	RoomId       int
-	User         User
+	User         *User
 	LastActivity string
 	JoinedDate   string
 	IsOnline     bool
 }
 type RoomUsers struct {
 	Count int
-	Value []RoomUser
+	Value []*RoomUser
 }
 type Room struct {
 	Id                      int
 	Name                    string
 	Description             string
 	LastActivity            string
-	CreatedBy               User
+	CreatedBy               *User
 	CreatedDate             string
 	HasAdminPermissions     bool
 	HasReadWritePermissions bool
 }
 type Rooms struct {
 	Count int
-	Value []Room
+	Value []*Room
 }
 
 var apiClient http.RoundTripper = &http.Transport{
@@ -66,6 +67,8 @@ func main() {
 		User:     os.Args[2],
 		Password: os.Args[3],
 	}
+	//log.Printf("main login=%s", login)
+
 	listener := make(chan interface{}) // routines send updates here
 	quitter := make(chan interface{})  // close to have all routines return
 
@@ -81,9 +84,10 @@ func main() {
 // so login can be updated on errors
 // without others triggering same
 func makeRequest(verb string, url string, body string, code int, login *Login, listener *chan interface{}) ([]byte, error) {
+	//log.Printf("makeRequest verb=%s url=%s body=%s code=%d", verb, url, body, code)
 	login.sync.Lock()
 	defer login.sync.Unlock()
-
+	
 	request, err := http.NewRequest(verb, url, strings.NewReader(body))
 	if err != nil {
 		return nil, err
@@ -103,6 +107,7 @@ func makeRequest(verb string, url string, body string, code int, login *Login, l
 }
 
 func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitter *chan interface{}) {
+	//log.Printf("pollRooms d=%d", d)
 	roomMap := make(map[int]*Room)
 	roomTicker := time.NewTicker(d)
 	defer roomTicker.Stop()
@@ -113,36 +118,37 @@ func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitte
 			// api
 			body, err := makeRequest("GET", apiEndpoint[0], "", 200, login, listener)
 			if err != nil {
-				*listener <- fmt.Sprintf("error pollRooms %s", err)
+				log.Printf("pollRooms err=%s", err)
 				continue
 			}
 
 			var rooms Rooms // or interface{} for generic
 			err = json.Unmarshal(body, &rooms)
 			if err != nil {
-				*listener <- fmt.Sprintf("error pollRooms %s", err)
+				log.Printf("pollRooms err=%s", err)
 				continue
 			}
+			//log.Printf("pollRooms rooms=%s", rooms)
 
 			// added
 			newRoomMap := make(map[int]*Room)
 			for _, room := range rooms.Value {
-				newRoomMap[room.Id] = &room
+				newRoomMap[room.Id] = room
 				if _, ok := roomMap[room.Id]; ok {
 					continue
 				}
 
 				json, err := json.Marshal(room)
 				if err != nil {
-					*listener <- fmt.Sprintf("error pollRooms %s", err)
+					log.Printf("pollRooms err=%s", err)
 					continue
 				}
 
 				*listener <- fmt.Sprintf("room add %d %s", room.Id, json)
-				roomMap[room.Id] = &room
+				roomMap[room.Id] = room
 
 				// need to track quitter for room users polling
-				go pollRoomUsers(3*time.Second, &room, login, listener, quitter)
+				go pollRoomUsers(3*time.Second, room, login, listener, quitter)
 			}
 
 			// removed
@@ -153,7 +159,7 @@ func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitte
 
 				json, err := json.Marshal(*room)
 				if err != nil {
-					*listener <- fmt.Sprintf("error pollRooms %s", err)
+					log.Printf("pollRooms err=%s", err)
 					continue
 				}
 
@@ -173,6 +179,7 @@ func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitte
 }
 
 func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan interface{}, quitter *chan interface{}) {
+	//log.Printf("pollRoomUsers d=%d room=%s", d, *room)
 	userMap := make(map[string]*RoomUser)
 	userTicker := time.NewTicker(d)
 	defer userTicker.Stop()
@@ -183,33 +190,32 @@ func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan int
 			// api
 			body, err := makeRequest("GET", fmt.Sprintf(apiEndpoint[1], room.Id), "", 200, login, listener)
 			if err != nil {
-				*listener <- fmt.Sprintf("error pollUsers %s", err)
 				continue
 			}
 
 			var users RoomUsers
 			err = json.Unmarshal(body, &users)
 			if err != nil {
-				*listener <- fmt.Sprintf("error pollUsers %s", err)
+				log.Printf("pollRoomUsers err=%s", err)
 				continue
 			}
 
 			// added
 			newUserMap := make(map[string]*RoomUser)
 			for _, user := range users.Value {
-				newUserMap[user.User.Id] = &user
+				newUserMap[user.User.Id] = user
 				if _, ok := userMap[user.User.Id]; ok {
 					continue
 				}
 
 				json, err := json.Marshal(user)
 				if err != nil {
-					*listener <- fmt.Sprintf("error pollUsers %s", err)
+					log.Printf("pollRoomUsers err=%s", err)
 					continue
 				}
 
 				*listener <- fmt.Sprintf("user add %d %s %s", user.RoomId, user.User.Id, json)
-				userMap[user.User.Id] = &user
+				userMap[user.User.Id] = user
 			}
 
 			// removed
@@ -220,7 +226,7 @@ func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan int
 
 				json, err := json.Marshal(*user)
 				if err != nil {
-					*listener <- fmt.Sprintf("error pollUsers %s", err)
+					log.Printf("pollRoomUsers err=%s", err)
 					continue
 				}
 
@@ -233,7 +239,7 @@ func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan int
 				if newUserMap[id].IsOnline != userMap[id].IsOnline {
 					json, err := json.Marshal(*user)
 					if err != nil {
-						*listener <- fmt.Sprintf("error pollUsers %s", err)
+						log.Printf("pollRoomUsers err=%s", err)
 						continue
 					}
 
