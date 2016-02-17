@@ -23,9 +23,16 @@ type User struct {
 	Url         string
 	ImageUrl    string
 }
-type Users struct {
+type RoomUser struct {
+	RoomId       int
+	User         User
+	LastActivity string
+	JoinedDate   string
+	IsOnline     bool
+}
+type RoomUsers struct {
 	Count int
-	Value []User
+	Value []RoomUser
 }
 type Room struct {
 	Id                      int
@@ -48,10 +55,10 @@ var apiClient http.RoundTripper = &http.Transport{
 var apiBase string = os.Args[1]
 var apiEndpoint []string = []string{
 	apiBase + "/_apis/chat/rooms?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%s/users?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%s/users/%s?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%s/messages?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%s/messages?$filter=PostedTime ge %s&api-version=1.0",
+	apiBase + "/_apis/chat/rooms/%d/users?api-version=1.0",
+	apiBase + "/_apis/chat/rooms/%d/users/%s?api-version=1.0",
+	apiBase + "/_apis/chat/rooms/%d/messages?api-version=1.0",
+	apiBase + "/_apis/chat/rooms/%d/messages?$filter=PostedTime ge %s&api-version=1.0",
 }
 
 func main() {
@@ -59,9 +66,11 @@ func main() {
 		User:     os.Args[2],
 		Password: os.Args[3],
 	}
-	listener := make(chan string)
+	listener := make(chan interface{}) // routines send updates here
+	quitter := make(chan interface{})  // close to have all routines return
 
-	go pollRooms(5*time.Second, &login, &listener)
+	// go pollClient() // get input
+	go pollRooms(5*time.Second, &login, &listener, &quitter)
 
 	for l := range listener {
 		fmt.Println(l)
@@ -71,7 +80,7 @@ func main() {
 // requests are mutually exclusive on login
 // so login can be updated on errors
 // without others triggering same
-func makeRequest(login *Login, verb string, url string, body string, code int, listener *chan string) ([]byte, error) {
+func makeRequest(verb string, url string, body string, code int, login *Login, listener *chan interface{}) ([]byte, error) {
 	login.sync.Lock()
 	defer login.sync.Unlock()
 
@@ -93,53 +102,68 @@ func makeRequest(login *Login, verb string, url string, body string, code int, l
 	return ioutil.ReadAll(response.Body)
 }
 
-func pollRooms(d time.Duration, login *Login, listener *chan string) {
+func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitter *chan interface{}) {
 	roomMap := make(map[int]*Room)
 	roomTicker := time.NewTicker(d)
 	defer roomTicker.Stop()
 
-	for _ = range roomTicker.C {
-		body, err := makeRequest(login, "GET", apiEndpoint[0], "", 200, listener)
-		if err != nil {
-			*listener <- fmt.Sprintf("error pollRooms %s", err)
-			continue
-		}
-
-		var rooms Rooms // or interface{} for generic
-		err = json.Unmarshal(body, &rooms)
-		if err != nil {
-			*listener <- fmt.Sprintf("error pollRooms %s", err)
-			continue
-		}
-
-		// added
-		newRoomMap := make(map[int]*Room)
-		for _, room := range rooms.Value {
-			newRoomMap[room.Id] = &room
-			if _, ok := roomMap[room.Id]; ok {
-				continue
-			}
-			json, err := json.Marshal(room)
+	for {
+		select {
+		case <-roomTicker.C:
+			// api
+			body, err := makeRequest("GET", apiEndpoint[0], "", 200, login, listener)
 			if err != nil {
 				*listener <- fmt.Sprintf("error pollRooms %s", err)
 				continue
 			}
-			*listener <- fmt.Sprintf("room open %d %s", room.Id, json)
-			roomMap[room.Id] = &room
-		}
 
-		// removed
-		for _, room := range roomMap {
-			if _, ok := newRoomMap[room.Id]; ok {
-				continue
-			}
-			json, err := json.Marshal(*room)
+			var rooms Rooms // or interface{} for generic
+			err = json.Unmarshal(body, &rooms)
 			if err != nil {
 				*listener <- fmt.Sprintf("error pollRooms %s", err)
 				continue
 			}
-			*listener <- fmt.Sprintf("room close %d %s", room.Id, json)
-			delete(roomMap, room.Id)
+
+			// added
+			newRoomMap := make(map[int]*Room)
+			for _, room := range rooms.Value {
+				newRoomMap[room.Id] = &room
+				if _, ok := roomMap[room.Id]; ok {
+					continue
+				}
+
+				json, err := json.Marshal(room)
+				if err != nil {
+					*listener <- fmt.Sprintf("error pollRooms %s", err)
+					continue
+				}
+
+				*listener <- fmt.Sprintf("room add %d %s", room.Id, json)
+				roomMap[room.Id] = &room
+
+				// need to track quitter for room users polling
+				go pollRoomUsers(3*time.Second, &room, login, listener, quitter)
+			}
+
+			// removed
+			for _, room := range roomMap {
+				if _, ok := newRoomMap[room.Id]; ok {
+					continue
+				}
+
+				json, err := json.Marshal(*room)
+				if err != nil {
+					*listener <- fmt.Sprintf("error pollRooms %s", err)
+					continue
+				}
+
+				*listener <- fmt.Sprintf("room remove %d %s", room.Id, json)
+				delete(roomMap, room.Id)
+
+				// need to clean up room users polling
+			}
+		case <-*quitter:
+			return
 		}
 
 		// if 401 or "auth" header, need U/P from speaker, block everywhere?
@@ -148,7 +172,83 @@ func pollRooms(d time.Duration, login *Login, listener *chan string) {
 	}
 }
 
-func pollUsers(d time.Duration) {
+func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan interface{}, quitter *chan interface{}) {
+	userMap := make(map[string]*RoomUser)
+	userTicker := time.NewTicker(d)
+	defer userTicker.Stop()
+
+	for {
+		select {
+		case <-userTicker.C:
+			// api
+			body, err := makeRequest("GET", fmt.Sprintf(apiEndpoint[1], room.Id), "", 200, login, listener)
+			if err != nil {
+				*listener <- fmt.Sprintf("error pollUsers %s", err)
+				continue
+			}
+
+			var users RoomUsers
+			err = json.Unmarshal(body, &users)
+			if err != nil {
+				*listener <- fmt.Sprintf("error pollUsers %s", err)
+				continue
+			}
+
+			// added
+			newUserMap := make(map[string]*RoomUser)
+			for _, user := range users.Value {
+				newUserMap[user.User.Id] = &user
+				if _, ok := userMap[user.User.Id]; ok {
+					continue
+				}
+
+				json, err := json.Marshal(user)
+				if err != nil {
+					*listener <- fmt.Sprintf("error pollUsers %s", err)
+					continue
+				}
+
+				*listener <- fmt.Sprintf("user add %d %s %s", user.RoomId, user.User.Id, json)
+				userMap[user.User.Id] = &user
+			}
+
+			// removed
+			for _, user := range userMap {
+				if _, ok := newUserMap[user.User.Id]; ok {
+					continue
+				}
+
+				json, err := json.Marshal(*user)
+				if err != nil {
+					*listener <- fmt.Sprintf("error pollUsers %s", err)
+					continue
+				}
+
+				*listener <- fmt.Sprintf("user remove %d %s %s", user.RoomId, user.User.Id, json)
+				delete(userMap, user.User.Id)
+			}
+
+			// changed
+			for id, user := range newUserMap {
+				if newUserMap[id].IsOnline != userMap[id].IsOnline {
+					json, err := json.Marshal(*user)
+					if err != nil {
+						*listener <- fmt.Sprintf("error pollUsers %s", err)
+						continue
+					}
+
+					userMap[id] = newUserMap[id]
+					*listener <- fmt.Sprintf("user change %d %s %s", user.RoomId, user.User.Id, json)
+				}
+			}
+		case <-*quitter:
+			return
+		}
+
+		// if 401 or "auth" header, need U/P from speaker, block everywhere?
+		// for added rooms start ticker, for removed rooms stop ticker
+		// need to signal "done"?
+	}
 }
 
 func pollMessages(d time.Duration) {
