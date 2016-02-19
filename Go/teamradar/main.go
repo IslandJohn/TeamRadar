@@ -1,137 +1,68 @@
+/*
+Copyright 2015 IslandJohn and the TeamRadar Authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
+	"github.com/IslandJohn/TeamRadar/Go/teamradar/tfs"
+	"github.com/IslandJohn/TeamRadar/Go/teamradar/trace"
 	"os"
-	"strings"
-	"sync"
 	"time"
 )
 
-type Login struct {
-	User     string
-	Password string
-	sync     sync.Mutex
-}
-type User struct {
-	Id          string
-	DisplayName string
-	Url         string
-	ImageUrl    string
-}
-type RoomUser struct {
-	RoomId       int
-	User         *User
-	LastActivity string
-	JoinedDate   string
-	IsOnline     bool
-}
-type RoomUsers struct {
-	Count int
-	Value []*RoomUser
-}
-type Room struct {
-	Id                      int
-	Name                    string
-	Description             string
-	LastActivity            string
-	CreatedBy               *User
-	CreatedDate             string
-	HasAdminPermissions     bool
-	HasReadWritePermissions bool
-}
-type Rooms struct {
-	Count int
-	Value []*Room
-}
-
-var apiClient http.RoundTripper = &http.Transport{
-	Proxy: http.ProxyFromEnvironment,
-}
-var apiBase string = os.Args[1]
-var apiEndpoint []string = []string{
-	apiBase + "/_apis/chat/rooms?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%d/users?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%d/users/%s?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%d/messages?api-version=1.0",
-	apiBase + "/_apis/chat/rooms/%d/messages?$filter=PostedTime ge %s&api-version=1.0",
-}
-
+// main runs the routines and collects
 func main() {
-	login := Login{
-		User:     os.Args[2],
-		Password: os.Args[3],
-	}
-	//log.Printf("main login=%s", login)
+	tfsApi := tfs.NewApi(os.Args[1], os.Args[2], os.Args[3])
+	recv := make(chan interface{}) // routines send updates here
+	quit := make(chan interface{}) // close this to have all routines return
 
-	listener := make(chan interface{}) // routines send updates here
-	quitter := make(chan interface{})  // close to have all routines return
+	go pollRooms(tfsApi, 1*time.Second, 60*time.Second, &recv, &quit)
 
-	// go pollClient() // get input
-	go pollRooms(5*time.Second, &login, &listener, &quitter)
-
-	for l := range listener {
+	for l := range recv {
 		fmt.Println(l)
 	}
 }
 
-// requests are mutually exclusive on login
-// so login can be updated on errors
-// without others triggering same
-func makeRequest(verb string, url string, body string, code int, login *Login, listener *chan interface{}) ([]byte, error) {
-	//log.Printf("makeRequest verb=%s url=%s body=%s code=%d", verb, url, body, code)
-	login.sync.Lock()
-	defer login.sync.Unlock()
-	
-	request, err := http.NewRequest(verb, url, strings.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	request.SetBasicAuth(login.User, login.Password)
+// routine to poll room information at variable intervals
+func pollRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
+	delay := min
+	roomMap := make(map[int]*tfs.Room)
+	roomQuit := make(map[int]*chan interface{})
 
-	response, err := apiClient.RoundTrip(request)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != code {
-		return nil, errors.New(response.Status)
-	}
-
-	return ioutil.ReadAll(response.Body)
-}
-
-func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitter *chan interface{}) {
-	//log.Printf("pollRooms d=%d", d)
-	roomMap := make(map[int]*Room)
-	roomTicker := time.NewTicker(d)
-	defer roomTicker.Stop()
-
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
 	for {
 		select {
-		case <-roomTicker.C:
-			// api
-			body, err := makeRequest("GET", apiEndpoint[0], "", 200, login, listener)
-			if err != nil {
-				log.Printf("pollRooms err=%s", err)
-				continue
+		case <-timer.C:
+			delay = delay * 2
+			if delay > max {
+				delay = max
 			}
 
-			var rooms Rooms // or interface{} for generic
-			err = json.Unmarshal(body, &rooms)
+			rooms, err := tfsApi.GetRooms()
 			if err != nil {
-				log.Printf("pollRooms err=%s", err)
+				trace.Log(err)
 				continue
 			}
-			//log.Printf("pollRooms rooms=%s", rooms)
+			//trace.Log("pollRooms rooms=%s", rooms)
 
 			// added
-			newRoomMap := make(map[int]*Room)
+			newRoomMap := make(map[int]*tfs.Room)
 			for _, room := range rooms.Value {
 				newRoomMap[room.Id] = room
 				if _, ok := roomMap[room.Id]; ok {
@@ -140,15 +71,17 @@ func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitte
 
 				json, err := json.Marshal(room)
 				if err != nil {
-					log.Printf("pollRooms err=%s", err)
+					trace.Log(err)
 					continue
 				}
 
-				*listener <- fmt.Sprintf("room add %d %s", room.Id, json)
+				*send <- fmt.Sprintf("room add %d %s", room.Id, json)
 				roomMap[room.Id] = room
-
-				// need to track quitter for room users polling
-				go pollRoomUsers(3*time.Second, room, login, listener, quitter)
+				q := make(chan interface{})
+				roomQuit[room.Id] = &q // http://stackoverflow.com/questions/25601802/why-does-inline-instantiation-of-variable-requires-explicitly-taking-the-address
+				go pollRoomUsers(room, tfsApi, min, max/2, send, roomQuit[room.Id])
+				go pollRoomMessages(room, tfsApi, min, max/4, send, roomQuit[room.Id])
+				delay = min
 			}
 
 			// removed
@@ -159,49 +92,47 @@ func pollRooms(d time.Duration, login *Login, listener *chan interface{}, quitte
 
 				json, err := json.Marshal(*room)
 				if err != nil {
-					log.Printf("pollRooms err=%s", err)
+					trace.Log(err)
 					continue
 				}
 
-				*listener <- fmt.Sprintf("room remove %d %s", room.Id, json)
+				close(*roomQuit[room.Id])
 				delete(roomMap, room.Id)
-
-				// need to clean up room users polling
+				delete(roomQuit, room.Id)
+				*send <- fmt.Sprintf("room remove %d %s", room.Id, json)
+				delay = min
 			}
-		case <-*quitter:
+
+			timer.Reset(delay)
+		case <-*recv:
 			return
 		}
-
-		// if 401 or "auth" header, need U/P from speaker, block everywhere?
-		// for added rooms start ticker, for removed rooms stop ticker
-		// need to signal "done"?
 	}
 }
 
-func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan interface{}, quitter *chan interface{}) {
-	//log.Printf("pollRoomUsers d=%d room=%s", d, *room)
-	userMap := make(map[string]*RoomUser)
-	userTicker := time.NewTicker(d)
-	defer userTicker.Stop()
+// routine to poll user information for a given room at variable intervals
+func pollRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
+	delay := min
+	userMap := make(map[string]*tfs.RoomUser)
 
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
 	for {
 		select {
-		case <-userTicker.C:
-			// api
-			body, err := makeRequest("GET", fmt.Sprintf(apiEndpoint[1], room.Id), "", 200, login, listener)
-			if err != nil {
-				continue
+		case <-timer.C:
+			delay = delay * 2
+			if delay > max {
+				delay = max
 			}
 
-			var users RoomUsers
-			err = json.Unmarshal(body, &users)
+			users, err := tfsApi.GetRoomUsers(room)
 			if err != nil {
-				log.Printf("pollRoomUsers err=%s", err)
+				trace.Log(err)
 				continue
 			}
 
 			// added
-			newUserMap := make(map[string]*RoomUser)
+			newUserMap := make(map[string]*tfs.RoomUser)
 			for _, user := range users.Value {
 				newUserMap[user.User.Id] = user
 				if _, ok := userMap[user.User.Id]; ok {
@@ -210,12 +141,13 @@ func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan int
 
 				json, err := json.Marshal(user)
 				if err != nil {
-					log.Printf("pollRoomUsers err=%s", err)
+					trace.Log(err)
 					continue
 				}
 
-				*listener <- fmt.Sprintf("user add %d %s %s", user.RoomId, user.User.Id, json)
+				*send <- fmt.Sprintf("user add %d %s %s", user.RoomId, user.User.Id, json)
 				userMap[user.User.Id] = user
+				delay = min
 			}
 
 			// removed
@@ -226,12 +158,13 @@ func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan int
 
 				json, err := json.Marshal(*user)
 				if err != nil {
-					log.Printf("pollRoomUsers err=%s", err)
+					trace.Log(err)
 					continue
 				}
 
-				*listener <- fmt.Sprintf("user remove %d %s %s", user.RoomId, user.User.Id, json)
+				*send <- fmt.Sprintf("user remove %d %s %s", user.RoomId, user.User.Id, json)
 				delete(userMap, user.User.Id)
+				delay = min
 			}
 
 			// changed
@@ -239,23 +172,66 @@ func pollRoomUsers(d time.Duration, room *Room, login *Login, listener *chan int
 				if newUserMap[id].IsOnline != userMap[id].IsOnline {
 					json, err := json.Marshal(*user)
 					if err != nil {
-						log.Printf("pollRoomUsers err=%s", err)
+						trace.Log(err)
 						continue
 					}
 
 					userMap[id] = newUserMap[id]
-					*listener <- fmt.Sprintf("user change %d %s %s", user.RoomId, user.User.Id, json)
+					*send <- fmt.Sprintf("user change %d %s %s", user.RoomId, user.User.Id, json)
+					delay = min
 				}
 			}
-		case <-*quitter:
+
+			timer.Reset(delay)
+		case <-*recv:
 			return
 		}
-
-		// if 401 or "auth" header, need U/P from speaker, block everywhere?
-		// for added rooms start ticker, for removed rooms stop ticker
-		// need to signal "done"?
 	}
 }
 
-func pollMessages(d time.Duration) {
+// routine to poll message information for a given room at variable intervals
+func pollRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
+	delay := min
+	messageMap := make(map[int]*tfs.RoomMessage)
+	messageLast := room.LastActivity
+
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	for {
+		select {
+		case <-timer.C:
+			delay = delay * 2
+			if delay > max {
+				delay = max
+			}
+
+			messages, err := tfsApi.GetRoomMessages(room, messageLast)
+			if err != nil {
+				trace.Log(err)
+				continue
+			}
+
+			// new
+			for _, message := range messages.Value {
+				if _, ok := messageMap[message.Id]; ok {
+					continue
+				}
+
+				json, err := json.Marshal(message)
+				if err != nil {
+					trace.Log(err)
+					continue
+				}
+
+				*send <- fmt.Sprintf("message new %d %s %d %s", message.PostedRoomId, message.PostedBy.Id, message.Id, json)
+				messageMap[message.Id] = message
+				messageLast = message.PostedTime
+				delay = min
+			}
+
+			timer.Reset(delay)
+		case <-*recv:
+			return
+		}
+	}
 }
