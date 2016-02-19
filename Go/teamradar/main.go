@@ -1,5 +1,5 @@
 /*
-Copyright 2015 IslandJohn and the TeamRadar Authors
+Copyright 2016 IslandJohn and the TeamRadar Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ func main() {
 	recv := make(chan interface{}) // routines send updates here
 	quit := make(chan interface{}) // close this to have all routines return
 
-	go pollRooms(tfsApi, 1*time.Second, 60*time.Second, &recv, &quit)
+	go pollTfsRooms(tfsApi, 1*time.Second, 60*time.Second, &recv, &quit)
 
 	for l := range recv {
 		fmt.Println(l)
@@ -39,7 +39,7 @@ func main() {
 }
 
 // routine to poll room information at variable intervals
-func pollRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
+func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
 	roomMap := make(map[int]*tfs.Room)
 	roomQuit := make(map[int]*chan interface{})
@@ -59,7 +59,6 @@ func pollRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan
 				trace.Log(err)
 				continue
 			}
-			//trace.Log("pollRooms rooms=%s", rooms)
 
 			// added
 			newRoomMap := make(map[int]*tfs.Room)
@@ -79,8 +78,8 @@ func pollRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan
 				roomMap[room.Id] = room
 				q := make(chan interface{})
 				roomQuit[room.Id] = &q // http://stackoverflow.com/questions/25601802/why-does-inline-instantiation-of-variable-requires-explicitly-taking-the-address
-				go pollRoomUsers(room, tfsApi, min, max/2, send, roomQuit[room.Id])
-				go pollRoomMessages(room, tfsApi, min, max/4, send, roomQuit[room.Id])
+				go pollTfsRoomUsers(room, tfsApi, min, max/2, send, roomQuit[room.Id])
+				go pollTfsRoomMessages(room, tfsApi, min, max/4, send, roomQuit[room.Id])
 				delay = min
 			}
 
@@ -111,7 +110,7 @@ func pollRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan
 }
 
 // routine to poll user information for a given room at variable intervals
-func pollRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
+func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
 	userMap := make(map[string]*tfs.RoomUser)
 
@@ -190,7 +189,7 @@ func pollRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.
 }
 
 // routine to poll message information for a given room at variable intervals
-func pollRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
+func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
 	messageMap := make(map[int]*tfs.RoomMessage)
 	messageLast := room.LastActivity
