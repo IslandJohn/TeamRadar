@@ -22,6 +22,8 @@ import (
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/tfs"
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/trace"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -33,22 +35,57 @@ func main() {
 
 	go pollTfsRooms(tfsApi, 1*time.Second, 60*time.Second, &recv, &quit)
 
-	for l := range recv {
-		fmt.Println(l)
+	for event := range recv {
+		fmt.Println(event)
 	}
+}
+
+// return the routine, action, room, user, message of an event
+func tokenizeEvent(event string) (string, string, int, string, int) {
+	var err error
+	routine := ""
+	action := ""
+	room := 0
+	user := ""
+	message := 0
+	fields := strings.Fields(event)
+
+	if len(fields) >= 1 {
+		routine = fields[0]
+
+		if len(fields) >= 2 {
+			action = fields[1]
+
+			if len(fields) >= 3 {
+				room, err = strconv.Atoi(fields[2])
+
+				if len(fields) >= 4 && err == nil {
+					user = fields[3]
+
+					if len(fields) >= 5 {
+						message, err = strconv.Atoi(fields[4])
+					}
+				}
+			}
+		}
+	}
+
+	return routine, action, room, user, message
 }
 
 // routine to poll room information at variable intervals
 func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
+	numErrors := 0
+	roomRecv := make(chan interface{})          // routines started here we'll be proxied
+	roomQuit := make(map[int]*chan interface{}) // we'll close this to have routines we started return
 	roomMap := make(map[int]*tfs.Room)
-	roomQuit := make(map[int]*chan interface{})
 
 	timer := time.NewTimer(delay)
 	defer timer.Stop()
 	for {
 		select {
-		case <-timer.C:
+		case <-timer.C: // tick tock
 			delay = delay * 2
 			if delay > max {
 				delay = max
@@ -57,8 +94,17 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 			rooms, err := tfsApi.GetRooms()
 			if err != nil {
 				trace.Log(err)
+				numErrors++
+				if numErrors >= 3 {
+					for _, quit := range roomQuit { // clean up on error
+						close(*quit) // routines should return on this being closed
+					}
+					*send <- fmt.Sprintf("rooms error %s", err)
+					return
+				}
 				continue
 			}
+			numErrors = 0
 
 			// added
 			newRoomMap := make(map[int]*tfs.Room)
@@ -74,12 +120,12 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 					continue
 				}
 
-				*send <- fmt.Sprintf("room add %d %s", room.Id, json)
+				*send <- fmt.Sprintf("rooms add %d %s", room.Id, json)
 				roomMap[room.Id] = room
 				q := make(chan interface{})
 				roomQuit[room.Id] = &q // http://stackoverflow.com/questions/25601802/why-does-inline-instantiation-of-variable-requires-explicitly-taking-the-address
-				go pollTfsRoomUsers(room, tfsApi, min, max/2, send, roomQuit[room.Id])
-				go pollTfsRoomMessages(room, tfsApi, min, max/4, send, roomQuit[room.Id])
+				go pollTfsRoomUsers(room, tfsApi, min, max/2, &roomRecv, roomQuit[room.Id])
+				go pollTfsRoomMessages(room, tfsApi, min, max/4, &roomRecv, roomQuit[room.Id])
 				delay = min
 			}
 
@@ -89,21 +135,31 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 					continue
 				}
 
-				json, err := json.Marshal(*room)
-				if err != nil {
-					trace.Log(err)
-					continue
-				}
-
 				close(*roomQuit[room.Id])
 				delete(roomMap, room.Id)
 				delete(roomQuit, room.Id)
-				*send <- fmt.Sprintf("room remove %d %s", room.Id, json)
+				*send <- fmt.Sprintf("rooms remove %d", room.Id)
 				delay = min
 			}
 
 			timer.Reset(delay)
-		case <-*recv:
+		case event := <-roomRecv: // relay send or clean up from a routine that errored
+			_, action, room, _, _ := tokenizeEvent(event.(string))
+			if action == "error" { // routine error
+				quit, ok := roomQuit[room]
+				if ok { // cleanup
+					close(*quit)
+					delete(roomMap, room)
+					delete(roomQuit, room)
+					*send <- fmt.Sprintf("rooms remove %d", room)
+				}
+			} else {
+				*send <- event // relay
+			}
+		case <-*recv: // we need to quit
+			for _, quit := range roomQuit { // clean up routines
+				close(*quit) // routines should return on this being closed
+			}
 			return
 		}
 	}
@@ -112,6 +168,7 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 // routine to poll user information for a given room at variable intervals
 func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
+	numErrors := 0
 	userMap := make(map[string]*tfs.RoomUser)
 
 	timer := time.NewTimer(delay)
@@ -127,8 +184,13 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 			users, err := tfsApi.GetRoomUsers(room)
 			if err != nil {
 				trace.Log(err)
+				numErrors++
+				if numErrors >= 3 {
+					*send <- fmt.Sprintf("users error %d %s", room.Id, err)
+				}
 				continue
 			}
+			numErrors = 0
 
 			// added
 			newUserMap := make(map[string]*tfs.RoomUser)
@@ -144,7 +206,7 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 					continue
 				}
 
-				*send <- fmt.Sprintf("user add %d %s %s", user.RoomId, user.User.Id, json)
+				*send <- fmt.Sprintf("users add %d %s %s", user.RoomId, user.User.Id, json)
 				userMap[user.User.Id] = user
 				delay = min
 			}
@@ -155,13 +217,7 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 					continue
 				}
 
-				json, err := json.Marshal(*user)
-				if err != nil {
-					trace.Log(err)
-					continue
-				}
-
-				*send <- fmt.Sprintf("user remove %d %s %s", user.RoomId, user.User.Id, json)
+				*send <- fmt.Sprintf("users remove %d %s", user.RoomId, user.User.Id)
 				delete(userMap, user.User.Id)
 				delay = min
 			}
@@ -176,13 +232,13 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 					}
 
 					userMap[id] = newUserMap[id]
-					*send <- fmt.Sprintf("user change %d %s %s", user.RoomId, user.User.Id, json)
+					*send <- fmt.Sprintf("users change %d %s %s", user.RoomId, user.User.Id, json)
 					delay = min
 				}
 			}
 
 			timer.Reset(delay)
-		case <-*recv:
+		case <-*recv: // quit
 			return
 		}
 	}
@@ -191,6 +247,7 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 // routine to poll message information for a given room at variable intervals
 func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
+	numErrors := 0
 	messageMap := make(map[int]*tfs.RoomMessage)
 	messageLast := room.LastActivity
 
@@ -207,8 +264,13 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 			messages, err := tfsApi.GetRoomMessages(room, messageLast)
 			if err != nil {
 				trace.Log(err)
+				numErrors++
+				if numErrors >= 3 {
+					*send <- fmt.Sprintf("messages error %d %s", room.Id, err)
+				}
 				continue
 			}
+			numErrors = 0
 
 			// new
 			for _, message := range messages.Value {
@@ -222,14 +284,14 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 					continue
 				}
 
-				*send <- fmt.Sprintf("message new %d %s %d %s", message.PostedRoomId, message.PostedBy.Id, message.Id, json)
+				*send <- fmt.Sprintf("messages new %d %s %d %s", message.PostedRoomId, message.PostedBy.Id, message.Id, json)
 				messageMap[message.Id] = message
 				messageLast = message.PostedTime
 				delay = min
 			}
 
 			timer.Reset(delay)
-		case <-*recv:
+		case <-*recv: // quit
 			return
 		}
 	}
