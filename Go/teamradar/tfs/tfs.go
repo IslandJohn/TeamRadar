@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/rest"
+	"net/http"
 )
 
 // TFS JSON
@@ -99,7 +100,7 @@ func (a *Api) SetLogin(user string, password string) {
 
 // get the list of rooms
 func (a *Api) GetRooms() (*Rooms, error) {
-	body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[0], a.restBase), "", 200)
+	body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[0], a.restBase), "", http.StatusOK)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +116,7 @@ func (a *Api) GetRooms() (*Rooms, error) {
 
 // get the list of users in a room
 func (a *Api) GetRoomUsers(room *Room) (*RoomUsers, error) {
-	body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[1], a.restBase, room.Id), "", 200)
+	body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[1], a.restBase, room.Id), "", http.StatusOK)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +132,7 @@ func (a *Api) GetRoomUsers(room *Room) (*RoomUsers, error) {
 
 // get the list of messages in a room since date
 func (a *Api) GetRoomMessages(room *Room, date string) (*RoomMessages, error) {
-	body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[4], a.restBase, room.Id, date), "", 200)
+	body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[4], a.restBase, room.Id, date), "", http.StatusOK)
 	if err != nil {
 		return nil, err
 	}
