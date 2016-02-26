@@ -9,7 +9,7 @@ You may obtain a copy of the License at
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied
 See the License for the specific language governing permissions and
 limitations under the License.
 */
@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/tfs"
@@ -34,20 +35,26 @@ func main() {
 	quit := make(chan interface{}) // close this to have all routines return
 
 	go pollTfsRooms(tfsApi, 1*time.Second, 60*time.Second, &recv, &quit)
+	go pollCommandInterface(&recv, &quit)
 
 	for event := range recv {
-		fmt.Println(event)
+		if command := event.(string); strings.HasPrefix(command, "interface") {
+			_, action, _ := tokenizeEvent(command)
+			if action == "error" || action == "exit" || action == "quit" {
+				close(quit)
+				return
+			}
+		} else {
+			fmt.Println(event)
+		}
 	}
 }
 
 // return the routine, action, room, user, message of an event
-func tokenizeEvent(event string) (string, string, int, string, int) {
-	var err error
+func tokenizeEvent(event string) (string, string, int) {
 	routine := ""
 	action := ""
 	room := 0
-	user := ""
-	message := 0
 	fields := strings.Fields(event)
 
 	if len(fields) >= 1 {
@@ -57,20 +64,49 @@ func tokenizeEvent(event string) (string, string, int, string, int) {
 			action = fields[1]
 
 			if len(fields) >= 3 {
-				room, err = strconv.Atoi(fields[2])
-
-				if len(fields) >= 4 && err == nil {
-					user = fields[3]
-
-					if len(fields) >= 5 {
-						message, err = strconv.Atoi(fields[4])
-					}
-				}
+				room, _ = strconv.Atoi(fields[2])
 			}
 		}
 	}
 
-	return routine, action, room, user, message
+	return routine, action, room
+}
+
+// read standard input for commands
+func pollCommandInterface(send *chan interface{}, recv *chan interface{}) {
+	input := make(chan interface{})
+	defer close(input)
+
+	// this will read lines from stdin and send it over a channel
+	go func() {
+		stdin := bufio.NewReader(os.Stdin)
+
+		for {
+			line, _, err := stdin.ReadLine()
+
+			if err != nil {
+				input <- err
+				return
+			} else {
+				input <- string(line)
+			}
+		}
+	}()
+
+	for {
+		select {
+		case event := <-input:
+			line, ok := event.(string)
+			if ok {
+				*send <- fmt.Sprintf("interface %s", line)
+			} else {
+				*send <- fmt.Sprintf("interface error %s", event)
+				return
+			}
+		case <-*recv: // we need to quit
+			return
+		}
+	}
 }
 
 // routine to poll room information at variable intervals
@@ -80,6 +116,7 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 	roomRecv := make(chan interface{})          // routines started here we'll be proxied
 	roomQuit := make(map[int]*chan interface{}) // we'll close this to have routines we started return
 	roomMap := make(map[int]*tfs.Room)
+	defer close(roomRecv)
 
 	timer := time.NewTimer(delay)
 	defer timer.Stop()
@@ -144,7 +181,7 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 
 			timer.Reset(delay)
 		case event := <-roomRecv: // relay send or clean up from a routine that errored
-			_, action, room, _, _ := tokenizeEvent(event.(string))
+			_, action, room := tokenizeEvent(event.(string))
 			if action == "error" { // routine error
 				quit, ok := roomQuit[room]
 				if ok { // cleanup
@@ -187,6 +224,7 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 				numErrors++
 				if numErrors >= 3 {
 					*send <- fmt.Sprintf("users error %d %s", room.Id, err)
+					return
 				}
 				continue
 			}
@@ -267,6 +305,7 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 				numErrors++
 				if numErrors >= 3 {
 					*send <- fmt.Sprintf("messages error %d %s", room.Id, err)
+					return
 				}
 				continue
 			}
