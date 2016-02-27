@@ -19,6 +19,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/tfs"
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/trace"
@@ -31,6 +32,14 @@ import (
 // main runs the routines and collects
 func main() {
 	tfsApi := tfs.NewApi(os.Args[1], os.Args[2], os.Args[3])
+
+	event, err := checkTfsAccount(tfsApi)
+	if err != nil {
+		trace.Log(err)
+		return
+	}
+	fmt.Println(event)
+
 	recv := make(chan interface{}) // routines send updates here
 	quit := make(chan interface{}) // close this to have all routines return
 
@@ -39,8 +48,11 @@ func main() {
 
 	for event := range recv {
 		if command := event.(string); strings.HasPrefix(command, "interface") {
-			_, action, _ := tokenizeEvent(command)
-			if action == "error" || action == "exit" || action == "quit" {
+			_, action, _, err := tokenizeEvent(command)
+			if err != nil {
+				trace.Log(err)
+			}
+			if action == "error" || action == "exit" || action == "logout" || action == "quit" {
 				close(quit)
 				return
 			}
@@ -51,62 +63,45 @@ func main() {
 }
 
 // return the routine, action, room, user, message of an event
-func tokenizeEvent(event string) (string, string, int) {
+func tokenizeEvent(event string) (string, string, int, error) {
 	routine := ""
 	action := ""
 	room := 0
-	fields := strings.Fields(event)
+	err := error(nil)
+	fields := strings.SplitN(event, " ", 3)
 
 	if len(fields) >= 1 {
 		routine = fields[0]
+	}
 
-		if len(fields) >= 2 {
-			action = fields[1]
+	if len(fields) >= 2 {
+		action = fields[1]
+	}
 
-			if len(fields) >= 3 {
-				room, _ = strconv.Atoi(fields[2])
-			}
+	if len(fields) >= 3 {
+		if action == "error" {
+			err = errors.New(fields[2])
+		} else {
+			room, _ = strconv.Atoi(fields[2])
 		}
 	}
 
-	return routine, action, room
+	return routine, action, room, err
 }
 
-// read standard input for commands
-func pollCommandInterface(send *chan interface{}, recv *chan interface{}) {
-	input := make(chan interface{})
-	defer close(input)
-
-	// this will read lines from stdin and send it over a channel
-	go func() {
-		stdin := bufio.NewReader(os.Stdin)
-
-		for {
-			line, _, err := stdin.ReadLine()
-
-			if err != nil {
-				input <- err
-				return
-			} else {
-				input <- string(line)
-			}
-		}
-	}()
-
-	for {
-		select {
-		case event := <-input:
-			line, ok := event.(string)
-			if ok {
-				*send <- fmt.Sprintf("interface %s", line)
-			} else {
-				*send <- fmt.Sprintf("interface error %s", event)
-				return
-			}
-		case <-*recv: // we need to quit
-			return
-		}
+// returns the account information of the user
+func checkTfsAccount(tfsApi *tfs.Api) (interface{}, error) {
+	account, err := tfsApi.GetAccount()
+	if err != nil {
+		return nil, err
 	}
+
+	json, err := json.Marshal(account)
+	if err != nil {
+		return nil, err
+	}
+
+	return fmt.Sprintf("account login %s", json), nil
 }
 
 // routine to poll room information at variable intervals
@@ -181,7 +176,10 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 
 			timer.Reset(delay)
 		case event := <-roomRecv: // relay send or clean up from a routine that errored
-			_, action, room := tokenizeEvent(event.(string))
+			_, action, room, err := tokenizeEvent(event.(string))
+			if err != nil {
+				trace.Log(err)
+			}
 			if action == "error" { // routine error
 				quit, ok := roomQuit[room]
 				if ok { // cleanup
@@ -331,6 +329,43 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 
 			timer.Reset(delay)
 		case <-*recv: // quit
+			return
+		}
+	}
+}
+
+// read standard input for commands
+func pollCommandInterface(send *chan interface{}, recv *chan interface{}) {
+	input := make(chan interface{})
+	defer close(input)
+
+	// this will read lines from stdin and send it over a channel
+	go func() {
+		stdin := bufio.NewReader(os.Stdin)
+
+		for {
+			line, _, err := stdin.ReadLine()
+
+			if err != nil {
+				input <- err
+				return
+			} else {
+				input <- string(line)
+			}
+		}
+	}()
+
+	for {
+		select {
+		case event := <-input:
+			line, ok := event.(string)
+			if ok {
+				*send <- fmt.Sprintf("interface %s", line)
+			} else {
+				*send <- fmt.Sprintf("interface error %s", fmt.Sprint(event))
+				return
+			}
+		case <-*recv: // we need to quit
 			return
 		}
 	}

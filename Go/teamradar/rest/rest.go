@@ -45,10 +45,10 @@ func (c *Client) SetLogin(u string, p string) {
 }
 
 // make a request, expect a code, and return the body or error
-func (c *Client) MakeRequest(verb string, url string, body string, code int) ([]byte, error) {
+func (c *Client) MakeRequest(verb string, url string, body string, code int) (map[string][]string, []byte, error) {
 	request, err := http.NewRequest(verb, url, strings.NewReader(body))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if c.user != "" {
 		request.SetBasicAuth(c.user, c.password)
@@ -56,13 +56,18 @@ func (c *Client) MakeRequest(verb string, url string, body string, code int) ([]
 
 	response, err := c.transport.RoundTrip(request)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	defer response.Body.Close()
 	if response.StatusCode != code {
-		return nil, errors.New(response.Status)
+		return nil, nil, errors.New(response.Status)
 	}
 
-	return ioutil.ReadAll(response.Body)
+	ret, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return response.Header, ret, err
 }
