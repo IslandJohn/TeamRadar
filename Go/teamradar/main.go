@@ -31,9 +31,13 @@ import (
 
 // main runs the routines and collects
 func main() {
-	tfsApi := tfs.NewApi(os.Args[1], os.Args[2], os.Args[3])
+	tfsApi, err := tfs.NewApi(os.Args[1], os.Args[2], os.Args[3])
+	if err != nil {
+		trace.Log(err)
+		return
+	}
 
-	event, err := checkTfsAccount(tfsApi)
+	event, err := pullTfsAccount(tfsApi)
 	if err != nil {
 		trace.Log(err)
 		return
@@ -89,19 +93,14 @@ func tokenizeEvent(event string) (string, string, int, error) {
 	return routine, action, room, err
 }
 
-// returns the account information of the user
-func checkTfsAccount(tfsApi *tfs.Api) (interface{}, error) {
-	account, err := tfsApi.GetAccount()
+// pulls the account information of the user
+func pullTfsAccount(tfsApi *tfs.Api) (interface{}, error) {
+	json, err := json.Marshal(tfsApi.LoginAccount)
 	if err != nil {
 		return nil, err
 	}
 
-	json, err := json.Marshal(account)
-	if err != nil {
-		return nil, err
-	}
-
-	return fmt.Sprintf("account login %s", json), nil
+	return fmt.Sprintf("accounts login %s", json), nil
 }
 
 // routine to poll room information at variable intervals
@@ -134,6 +133,7 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 					*send <- fmt.Sprintf("rooms error %s", err)
 					return
 				}
+				time.Sleep(time.Duration(numErrors) * time.Second)
 				continue
 			}
 			numErrors = 0
@@ -224,6 +224,7 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 					*send <- fmt.Sprintf("users error %d %s", room.Id, err)
 					return
 				}
+				time.Sleep(time.Duration(numErrors) * time.Second)
 				continue
 			}
 			numErrors = 0
@@ -305,6 +306,7 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 					*send <- fmt.Sprintf("messages error %d %s", room.Id, err)
 					return
 				}
+				time.Sleep(time.Duration(numErrors) * time.Second)
 				continue
 			}
 			numErrors = 0
@@ -336,6 +338,7 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 
 // read standard input for commands
 func pollCommandInterface(send *chan interface{}, recv *chan interface{}) {
+	numErrors := 0
 	input := make(chan interface{})
 	defer close(input)
 
@@ -347,11 +350,17 @@ func pollCommandInterface(send *chan interface{}, recv *chan interface{}) {
 			line, _, err := stdin.ReadLine()
 
 			if err != nil {
-				input <- err
-				return
-			} else {
-				input <- string(line)
+				numErrors++
+				if numErrors >= 3 {
+					input <- err
+					return
+				}
+				time.Sleep(time.Duration(numErrors) * time.Second)
+				continue
 			}
+			numErrors = 0
+
+			input <- string(line)
 		}
 	}()
 

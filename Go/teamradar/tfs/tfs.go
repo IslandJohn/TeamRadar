@@ -26,10 +26,6 @@ import (
 )
 
 // TFS JSON
-type Account struct {
-	UserId    string
-	LoginUser string
-}
 type User struct {
 	Id          string
 	DisplayName string
@@ -79,52 +75,50 @@ var restEndpoint []string = []string{
 	"%s/_apis/projects?api-version=1.0",
 	"%s/_apis/chat/rooms?api-version=1.0",
 	"%s/_apis/chat/rooms/%d/users?api-version=1.0",
+	"%s/_apis/chat/rooms/%d/users/%s?api-version={version}",
+	"%s/_apis/chat/rooms/%d/messages?api-version=1.0",
 	"%s/_apis/chat/rooms/%d/messages?$filter=PostedTime+ge+%s&api-version=1.0",
 }
 
 // TFS API
+type Account struct {
+	UserId    string
+	LoginUser string
+}
 type Api struct {
-	restBase   string
-	restClient *rest.Client
+	restBase     string
+	restClient   *rest.Client
+	LoginAccount *Account
 }
 
-func NewApi(url string, user string, password string) *Api {
+// create a new TFS API instance, verifying access
+func NewApi(url string, user string, password string) (*Api, error) {
 	api := Api{
 		restBase:   url,
 		restClient: rest.NewClient(),
 	}
-	api.SetLogin(user, password)
+	api.restClient.SetLogin(user, password)
 
-	return &api
-}
-
-// set login information
-func (a *Api) SetLogin(user string, password string) {
-	a.restClient.SetLogin(user, password)
-}
-
-// return the user identifier retrieved from headers
-func (a *Api) GetAccount() (*Account, error) {
-	header, _, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[0], a.restBase), "", http.StatusOK)
+	header, _, err := api.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[0], api.restBase), "", http.StatusOK)
 	if err != nil {
 		return nil, err
 	}
 
-	user, ok := header["X-Vss-Userdata"]
+	userdata, ok := header["X-Vss-Userdata"]
 	if !ok || len(user) <= 0 {
 		return nil, errors.New("Missing header X-VSS-UserData")
 	}
 
-	fields := strings.SplitN(user[0], ":", 2)
+	fields := strings.SplitN(userdata[0], ":", 2)
 	if len(fields) != 2 {
 		return nil, errors.New("Invalid header X-VSS-UserData")
 	}
 
-	account := Account{
+	api.LoginAccount = &Account{
 		fields[0],
 		fields[1],
 	}
-	return &account, nil
+	return &api, nil
 }
 
 // get the list of rooms
@@ -159,9 +153,24 @@ func (a *Api) GetRoomUsers(room *Room) (*RoomUsers, error) {
 	return &users, nil
 }
 
+// join a room
+func (a *Api) JoinRoom(room *Room) error {
+	return nil
+}
+
+// leave a room
+func (a *Api) LeaveRoom(room *Room) error {
+	return nil
+}
+
+// create a message in a room
+func (a *Api) SendRoomMessage(room *Room, msg string) (*RoomMessage, error) {
+	return nil, nil
+}
+
 // get the list of messages in a room since date
 func (a *Api) GetRoomMessages(room *Room, date string) (*RoomMessages, error) {
-	_, body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[3], a.restBase, room.Id, date), "", http.StatusOK)
+	_, body, err := a.restClient.MakeRequest("GET", fmt.Sprintf(restEndpoint[5], a.restBase, room.Id, date), "", http.StatusOK)
 	if err != nil {
 		return nil, err
 	}
