@@ -155,11 +155,26 @@ func (a *Api) GetRoomUsers(room *Room) (*RoomUsers, error) {
 
 // join a room
 func (a *Api) JoinRoom(room *Room) error {
+	json, err := json.Marshal(a.LoginAccount)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = a.restClient.MakeRequest("PUT", fmt.Sprintf(restEndpoint[3], a.restBase, room.Id, a.LoginAccount.UserId), string(json), http.StatusNoContent)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // leave a room
 func (a *Api) LeaveRoom(room *Room) error {
+	_, _, err := a.restClient.MakeRequest("DELETE", fmt.Sprintf(restEndpoint[3], a.restBase, room.Id, a.LoginAccount.UserId), "", http.StatusNoContent)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

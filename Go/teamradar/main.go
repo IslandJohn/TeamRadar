@@ -60,6 +60,7 @@ func main() {
 				close(quit)
 				return
 			}
+			
 		} else {
 			fmt.Println(event)
 		}
