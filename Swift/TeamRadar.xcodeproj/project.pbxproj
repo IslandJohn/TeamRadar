@@ -1,0 +1,522 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1BE682291C82AA660099722F /* teamradar in Resources */ = {isa = PBXBuildFile; fileRef = 1BE682281C82AA660099722F /* teamradar */; };
+		1BE6C3E21C81ED6100AAE288 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3E11C81ED6100AAE288 /* AppDelegate.swift */; };
+		1BE6C3E41C81ED6100AAE288 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3E31C81ED6100AAE288 /* ViewController.swift */; };
+		1BE6C3E71C81ED6100AAE288 /* TeamRadar.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3E51C81ED6100AAE288 /* TeamRadar.xcdatamodeld */; };
+		1BE6C3E91C81ED6100AAE288 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1BE6C3E81C81ED6100AAE288 /* Assets.xcassets */; };
+		1BE6C3EC1C81ED6100AAE288 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1BE6C3EA1C81ED6100AAE288 /* Main.storyboard */; };
+		1BE6C3F71C81ED6100AAE288 /* TeamRadarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3F61C81ED6100AAE288 /* TeamRadarTests.swift */; };
+		1BE6C4021C81ED6100AAE288 /* TeamRadarUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C4011C81ED6100AAE288 /* TeamRadarUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1BE6C3F31C81ED6100AAE288 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1BE6C3D61C81ED6100AAE288 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1BE6C3DD1C81ED6100AAE288;
+			remoteInfo = TeamRadar;
+		};
+		1BE6C3FE1C81ED6100AAE288 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1BE6C3D61C81ED6100AAE288 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1BE6C3DD1C81ED6100AAE288;
+			remoteInfo = TeamRadar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1BE682281C82AA660099722F /* teamradar */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = teamradar; path = ../../../../../bin/teamradar; sourceTree = "<group>"; };
+		1BE6C3DE1C81ED6100AAE288 /* TeamRadar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeamRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BE6C3E11C81ED6100AAE288 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		1BE6C3E31C81ED6100AAE288 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		1BE6C3E61C81ED6100AAE288 /* TeamRadar.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TeamRadar.xcdatamodel; sourceTree = "<group>"; };
+		1BE6C3E81C81ED6100AAE288 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1BE6C3EB1C81ED6100AAE288 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		1BE6C3ED1C81ED6100AAE288 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1BE6C3F21C81ED6100AAE288 /* TeamRadarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeamRadarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BE6C3F61C81ED6100AAE288 /* TeamRadarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamRadarTests.swift; sourceTree = "<group>"; };
+		1BE6C3F81C81ED6100AAE288 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1BE6C3FD1C81ED6100AAE288 /* TeamRadarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeamRadarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BE6C4011C81ED6100AAE288 /* TeamRadarUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamRadarUITests.swift; sourceTree = "<group>"; };
+		1BE6C4031C81ED6100AAE288 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1BE6C3DB1C81ED6100AAE288 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BE6C3EF1C81ED6100AAE288 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BE6C3FA1C81ED6100AAE288 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1BE6C3D51C81ED6100AAE288 = {
+			isa = PBXGroup;
+			children = (
+				1BE682281C82AA660099722F /* teamradar */,
+				1BE6C3E01C81ED6100AAE288 /* TeamRadar */,
+				1BE6C3F51C81ED6100AAE288 /* TeamRadarTests */,
+				1BE6C4001C81ED6100AAE288 /* TeamRadarUITests */,
+				1BE6C3DF1C81ED6100AAE288 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1BE6C3DF1C81ED6100AAE288 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1BE6C3DE1C81ED6100AAE288 /* TeamRadar.app */,
+				1BE6C3F21C81ED6100AAE288 /* TeamRadarTests.xctest */,
+				1BE6C3FD1C81ED6100AAE288 /* TeamRadarUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1BE6C3E01C81ED6100AAE288 /* TeamRadar */ = {
+			isa = PBXGroup;
+			children = (
+				1BE6C3E11C81ED6100AAE288 /* AppDelegate.swift */,
+				1BE6C3E31C81ED6100AAE288 /* ViewController.swift */,
+				1BE6C3E81C81ED6100AAE288 /* Assets.xcassets */,
+				1BE6C3EA1C81ED6100AAE288 /* Main.storyboard */,
+				1BE6C3ED1C81ED6100AAE288 /* Info.plist */,
+				1BE6C3E51C81ED6100AAE288 /* TeamRadar.xcdatamodeld */,
+			);
+			path = TeamRadar;
+			sourceTree = "<group>";
+		};
+		1BE6C3F51C81ED6100AAE288 /* TeamRadarTests */ = {
+			isa = PBXGroup;
+			children = (
+				1BE6C3F61C81ED6100AAE288 /* TeamRadarTests.swift */,
+				1BE6C3F81C81ED6100AAE288 /* Info.plist */,
+			);
+			path = TeamRadarTests;
+			sourceTree = "<group>";
+		};
+		1BE6C4001C81ED6100AAE288 /* TeamRadarUITests */ = {
+			isa = PBXGroup;
+			children = (
+				1BE6C4011C81ED6100AAE288 /* TeamRadarUITests.swift */,
+				1BE6C4031C81ED6100AAE288 /* Info.plist */,
+			);
+			path = TeamRadarUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1BE6C3DD1C81ED6100AAE288 /* TeamRadar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BE6C4061C81ED6100AAE288 /* Build configuration list for PBXNativeTarget "TeamRadar" */;
+			buildPhases = (
+				1BE6C3DA1C81ED6100AAE288 /* Sources */,
+				1BE6C3DB1C81ED6100AAE288 /* Frameworks */,
+				1BE6C3DC1C81ED6100AAE288 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TeamRadar;
+			productName = TeamRadar;
+			productReference = 1BE6C3DE1C81ED6100AAE288 /* TeamRadar.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1BE6C3F11C81ED6100AAE288 /* TeamRadarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BE6C4091C81ED6100AAE288 /* Build configuration list for PBXNativeTarget "TeamRadarTests" */;
+			buildPhases = (
+				1BE6C3EE1C81ED6100AAE288 /* Sources */,
+				1BE6C3EF1C81ED6100AAE288 /* Frameworks */,
+				1BE6C3F01C81ED6100AAE288 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1BE6C3F41C81ED6100AAE288 /* PBXTargetDependency */,
+			);
+			name = TeamRadarTests;
+			productName = TeamRadarTests;
+			productReference = 1BE6C3F21C81ED6100AAE288 /* TeamRadarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		1BE6C3FC1C81ED6100AAE288 /* TeamRadarUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1BE6C40C1C81ED6100AAE288 /* Build configuration list for PBXNativeTarget "TeamRadarUITests" */;
+			buildPhases = (
+				1BE6C3F91C81ED6100AAE288 /* Sources */,
+				1BE6C3FA1C81ED6100AAE288 /* Frameworks */,
+				1BE6C3FB1C81ED6100AAE288 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1BE6C3FF1C81ED6100AAE288 /* PBXTargetDependency */,
+			);
+			name = TeamRadarUITests;
+			productName = TeamRadarUITests;
+			productReference = 1BE6C3FD1C81ED6100AAE288 /* TeamRadarUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1BE6C3D61C81ED6100AAE288 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0720;
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = IslandJohn;
+				TargetAttributes = {
+					1BE6C3DD1C81ED6100AAE288 = {
+						CreatedOnToolsVersion = 7.2;
+					};
+					1BE6C3F11C81ED6100AAE288 = {
+						CreatedOnToolsVersion = 7.2;
+						TestTargetID = 1BE6C3DD1C81ED6100AAE288;
+					};
+					1BE6C3FC1C81ED6100AAE288 = {
+						CreatedOnToolsVersion = 7.2;
+						TestTargetID = 1BE6C3DD1C81ED6100AAE288;
+					};
+				};
+			};
+			buildConfigurationList = 1BE6C3D91C81ED6100AAE288 /* Build configuration list for PBXProject "TeamRadar" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1BE6C3D51C81ED6100AAE288;
+			productRefGroup = 1BE6C3DF1C81ED6100AAE288 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1BE6C3DD1C81ED6100AAE288 /* TeamRadar */,
+				1BE6C3F11C81ED6100AAE288 /* TeamRadarTests */,
+				1BE6C3FC1C81ED6100AAE288 /* TeamRadarUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1BE6C3DC1C81ED6100AAE288 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BE682291C82AA660099722F /* teamradar in Resources */,
+				1BE6C3E91C81ED6100AAE288 /* Assets.xcassets in Resources */,
+				1BE6C3EC1C81ED6100AAE288 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BE6C3F01C81ED6100AAE288 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BE6C3FB1C81ED6100AAE288 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1BE6C3DA1C81ED6100AAE288 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BE6C3E41C81ED6100AAE288 /* ViewController.swift in Sources */,
+				1BE6C3E71C81ED6100AAE288 /* TeamRadar.xcdatamodeld in Sources */,
+				1BE6C3E21C81ED6100AAE288 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BE6C3EE1C81ED6100AAE288 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BE6C3F71C81ED6100AAE288 /* TeamRadarTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1BE6C3F91C81ED6100AAE288 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BE6C4021C81ED6100AAE288 /* TeamRadarUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1BE6C3F41C81ED6100AAE288 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1BE6C3DD1C81ED6100AAE288 /* TeamRadar */;
+			targetProxy = 1BE6C3F31C81ED6100AAE288 /* PBXContainerItemProxy */;
+		};
+		1BE6C3FF1C81ED6100AAE288 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1BE6C3DD1C81ED6100AAE288 /* TeamRadar */;
+			targetProxy = 1BE6C3FE1C81ED6100AAE288 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		1BE6C3EA1C81ED6100AAE288 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1BE6C3EB1C81ED6100AAE288 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1BE6C4041C81ED6100AAE288 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1BE6C4051C81ED6100AAE288 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		1BE6C4071C81ED6100AAE288 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = TeamRadar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.islandjohn.TeamRadar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		1BE6C4081C81ED6100AAE288 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = TeamRadar/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.islandjohn.TeamRadar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		1BE6C40A1C81ED6100AAE288 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = TeamRadarTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.islandjohn.TeamRadarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TeamRadar.app/Contents/MacOS/TeamRadar";
+			};
+			name = Debug;
+		};
+		1BE6C40B1C81ED6100AAE288 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = TeamRadarTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.islandjohn.TeamRadarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TeamRadar.app/Contents/MacOS/TeamRadar";
+			};
+			name = Release;
+		};
+		1BE6C40D1C81ED6100AAE288 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = TeamRadarUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.islandjohn.TeamRadarUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = TeamRadar;
+				USES_XCTRUNNER = YES;
+			};
+			name = Debug;
+		};
+		1BE6C40E1C81ED6100AAE288 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = TeamRadarUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.islandjohn.TeamRadarUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = TeamRadar;
+				USES_XCTRUNNER = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1BE6C3D91C81ED6100AAE288 /* Build configuration list for PBXProject "TeamRadar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BE6C4041C81ED6100AAE288 /* Debug */,
+				1BE6C4051C81ED6100AAE288 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1BE6C4061C81ED6100AAE288 /* Build configuration list for PBXNativeTarget "TeamRadar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BE6C4071C81ED6100AAE288 /* Debug */,
+				1BE6C4081C81ED6100AAE288 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1BE6C4091C81ED6100AAE288 /* Build configuration list for PBXNativeTarget "TeamRadarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BE6C40A1C81ED6100AAE288 /* Debug */,
+				1BE6C40B1C81ED6100AAE288 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1BE6C40C1C81ED6100AAE288 /* Build configuration list for PBXNativeTarget "TeamRadarUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1BE6C40D1C81ED6100AAE288 /* Debug */,
+				1BE6C40E1C81ED6100AAE288 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		1BE6C3E51C81ED6100AAE288 /* TeamRadar.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				1BE6C3E61C81ED6100AAE288 /* TeamRadar.xcdatamodel */,
+			);
+			currentVersion = 1BE6C3E61C81ED6100AAE288 /* TeamRadar.xcdatamodel */;
+			path = TeamRadar.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 1BE6C3D61C81ED6100AAE288 /* Project object */;
+}

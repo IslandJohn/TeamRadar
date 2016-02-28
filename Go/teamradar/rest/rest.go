@@ -53,7 +53,8 @@ func (c *Client) MakeRequest(verb string, url string, body string, code int) (ma
 	if c.user != "" {
 		request.SetBasicAuth(c.user, c.password)
 	}
-
+	request.Header.Set("Content-Type", "application/json")
+	
 	response, err := c.transport.RoundTrip(request)
 	if err != nil {
 		return nil, nil, err
