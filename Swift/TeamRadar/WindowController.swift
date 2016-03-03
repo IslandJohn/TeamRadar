@@ -16,27 +16,9 @@ limitations under the License.
 
 import Cocoa
 
-class ViewController: NSViewController {
+class WindowController: NSWindowController {
 
-    @IBOutlet weak var prefUrlText: NSTextField!
-    @IBOutlet weak var prefUserText: NSTextField!
-    @IBOutlet weak var prefPasswordText: NSSecureTextField!
-    @IBOutlet weak var prefSaveButton: NSButton!
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-    }
-
-    override var representedObject: AnyObject? {
-        didSet {
-        // Update the view, if already loaded.
-        }
-    }
-    
-    @IBAction func cancelAction(sender: AnyObject) {
-    }
-    
-    @IBAction func saveAction(sender: AnyObject) {
+    override func windowDidLoad() {
+        super.windowDidLoad()
     }
 }
-

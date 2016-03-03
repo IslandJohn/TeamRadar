@@ -20,10 +20,71 @@ import Foundation
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     
+    @IBOutlet var statusItemMenu: NSMenu!
+    @IBOutlet var statusItemMenuStateItem: NSMenuItem!
+    
+    var statusItem: NSStatusItem? = nil
+    var goTask: NSTask? = nil
+    
     func applicationDidFinishLaunching(aNotification: NSNotification) {
-        // Insert code here to initialize your application
+        statusItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSVariableStatusItemLength)
+            
+        statusItem?.title = statusItemMenu.title
+        statusItem?.highlightMode = true
+        statusItem?.menu = statusItemMenu        
     }
 
+    func eventTaskOutput(note: NSNotification) {
+        let fh = note.object as! NSFileHandle
+        
+        fh.waitForDataInBackgroundAndNotify()
+    }
+    
+    func eventTaskError(note: NSNotification) {
+        let fh = note.object as! NSFileHandle
+        
+        fh.waitForDataInBackgroundAndNotify()
+    }
+    
+    func eventTaskTerminate() {
+    }
+    
+    @IBAction func connectAction(sender: AnyObject) {
+        let menuitem = sender as? NSMenuItem
+        
+        if (goTask == nil || !goTask!.running) {
+            if (goTask == nil) {
+                goTask = NSTask()
+                
+                goTask!.launchPath = NSBundle.mainBundle().pathForResource("teamradar", ofType: nil)
+                goTask!.standardInput = NSPipe()
+                goTask!.standardOutput = NSPipe()
+                goTask!.standardError = NSPipe()
+                goTask?.terminationHandler = {(task: NSTask) -> Void in
+                    self.eventTaskTerminate()
+                }
+                
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskOutput:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardOutput?.fileHandleForReading)
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskError:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardError?.fileHandleForReading)
+                
+                goTask!.standardOutput?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+                goTask!.standardError?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+            }
+            
+            //radarGoTask?.arguments = nil
+            goTask?.launch()
+            
+            menuitem?.title = "Disconnect"
+            statusItemMenuStateItem.title = "No rooms."
+        }
+        else {
+            goTask?.waitUntilExit()
+            
+            menuitem?.title = "Connect..."
+            statusItemMenuStateItem.title = "Not connected."
+        }
+    }
+    
     func applicationWillTerminate(aNotification: NSNotification) {
         // Insert code here to tear down your application
     }
