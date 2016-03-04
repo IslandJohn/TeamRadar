@@ -16,7 +16,7 @@ limitations under the License.
 
 import Cocoa
 
-class ViewController: NSViewController {
+class ViewController: NSViewController, NSUserNotificationCenterDelegate {
 
     @IBOutlet weak var prefUrlText: NSTextField!
     @IBOutlet weak var prefUserText: NSTextField!
@@ -25,6 +25,10 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        prefUrlText.stringValue = Settings.get(SettingsKey.SERVER) ?? ""
+        prefUserText.stringValue = Settings.get(SettingsKey.USERNAME) ?? ""
+        prefPasswordText.stringValue = Settings.get(SettingsKey.PASSWORD) ?? ""
     }
 
     override var representedObject: AnyObject? {
@@ -34,9 +38,26 @@ class ViewController: NSViewController {
     }
     
     @IBAction func cancelAction(sender: AnyObject) {
+        [self .dismissViewController(self)];
     }
     
     @IBAction func saveAction(sender: AnyObject) {
+        Settings.set(SettingsKey.USERNAME, value: prefUserText.stringValue)
+        Settings.set(SettingsKey.PASSWORD, value: prefPasswordText.stringValue)
+        Settings.set(SettingsKey.SERVER, value: prefUrlText.stringValue)
+    }
+    
+    func showNotification() -> Void {
+        let unc = NSUserNotificationCenter.defaultUserNotificationCenter()
+        unc.delegate = self
+        let notification = NSUserNotification()
+        notification.title = "Test from Swift"
+        notification.informativeText = "The body of this Swift notification"
+        unc.deliverNotification(notification)
+    }
+    
+    func userNotificationCenter(center: NSUserNotificationCenter, shouldPresentNotification notification: NSUserNotification) -> Bool {
+        return true
     }
 }
 

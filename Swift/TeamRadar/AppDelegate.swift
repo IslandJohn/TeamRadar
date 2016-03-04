@@ -52,36 +52,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @IBAction func connectAction(sender: AnyObject) {
         let menuitem = sender as? NSMenuItem
         
-        if (goTask == nil || !goTask!.running) {
-            if (goTask == nil) {
-                goTask = NSTask()
-                
-                goTask!.launchPath = NSBundle.mainBundle().pathForResource("teamradar", ofType: nil)
-                goTask!.standardInput = NSPipe()
-                goTask!.standardOutput = NSPipe()
-                goTask!.standardError = NSPipe()
-                goTask?.terminationHandler = {(task: NSTask) -> Void in
-                    self.eventTaskTerminate()
+        if let username = Settings.get(SettingsKey.USERNAME), let password = Settings.get(SettingsKey.PASSWORD), let server = Settings.get(SettingsKey.SERVER) {
+            if (goTask == nil || !goTask!.running) {
+                if (goTask == nil) {
+                    goTask = NSTask()
+                    
+                    goTask!.launchPath = NSBundle.mainBundle().pathForResource("teamradar", ofType: nil)
+                    goTask!.standardInput = NSPipe()
+                    goTask!.standardOutput = NSPipe()
+                    goTask!.standardError = NSPipe()
+                    goTask?.terminationHandler = {(task: NSTask) -> Void in
+                        self.eventTaskTerminate()
+                    }
+                    
+                    NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskOutput:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardOutput?.fileHandleForReading)
+                    NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskError:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardError?.fileHandleForReading)
+                    
+                    goTask!.standardOutput?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+                    goTask!.standardError?.fileHandleForReading.waitForDataInBackgroundAndNotify()
                 }
                 
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskOutput:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardOutput?.fileHandleForReading)
-                NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskError:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardError?.fileHandleForReading)
+                goTask?.arguments = [server, username, password]
+                goTask?.launch()
                 
-                goTask!.standardOutput?.fileHandleForReading.waitForDataInBackgroundAndNotify()
-                goTask!.standardError?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+                menuitem?.title = "Disconnect"
+                statusItemMenuStateItem.title = "No rooms."
+            } else {
+                goTask?.terminate()
+                goTask = nil
+                
+                menuitem?.title = "Connect..."
+                statusItemMenuStateItem.title = "Not connected."
             }
-            
-            //radarGoTask?.arguments = nil
-            goTask?.launch()
-            
-            menuitem?.title = "Disconnect"
-            statusItemMenuStateItem.title = "No rooms."
-        }
-        else {
-            goTask?.waitUntilExit()
-            
-            menuitem?.title = "Connect..."
-            statusItemMenuStateItem.title = "Not connected."
+        } else {
+            NSLog("User, pass, or server not set")
         }
     }
     
