@@ -670,7 +670,7 @@
                             <modifierMask key="keyEquivalentModifierMask"/>
                             <connections>
                                 <action selector="connectAction:" target="Voe-Tx-rLC" id="YFt-Qi-7ZJ"/>
-                                <segue destination="XfG-lQ-9wD" kind="modal" identifier="Save" id="Pf6-xV-syf"/>
+                                <segue destination="XfG-lQ-9wD" kind="custom" customClass="CustomSegue" customModule="TeamRadar" customModuleProvider="target" id="1W3-9t-c5T"/>
                             </connections>
                         </menuItem>
                         <menuItem isSeparatorItem="YES" id="Zn3-39-RWZ"/>
@@ -836,6 +836,6 @@ Gw
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="Pf6-xV-syf"/>
+        <segue reference="1W3-9t-c5T"/>
     </inferredMetricsTieBreakers>
 </document>

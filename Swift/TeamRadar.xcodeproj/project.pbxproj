@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		1B351F221C8403F400716660 /* WindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B351F211C8403F400716660 /* WindowController.swift */; };
 		1B84C7D81C8D2F0D00A44E60 /* teamradar in Resources */ = {isa = PBXBuildFile; fileRef = 1B84C7D71C8D2F0D00A44E60 /* teamradar */; };
+		1BE2CDD61C8D330C0033E8F6 /* CustomSegue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE2CDD51C8D330C0033E8F6 /* CustomSegue.swift */; };
 		1BE6C3E21C81ED6100AAE288 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3E11C81ED6100AAE288 /* AppDelegate.swift */; };
 		1BE6C3E41C81ED6100AAE288 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3E31C81ED6100AAE288 /* ViewController.swift */; };
 		1BE6C3E71C81ED6100AAE288 /* TeamRadar.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3E51C81ED6100AAE288 /* TeamRadar.xcdatamodeld */; };
@@ -39,6 +40,7 @@
 /* Begin PBXFileReference section */
 		1B351F211C8403F400716660 /* WindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WindowController.swift; sourceTree = "<group>"; };
 		1B84C7D71C8D2F0D00A44E60 /* teamradar */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = teamradar; path = ../../../../../bin/teamradar; sourceTree = SOURCE_ROOT; };
+		1BE2CDD51C8D330C0033E8F6 /* CustomSegue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CustomSegue.swift; sourceTree = "<group>"; };
 		1BE6C3DE1C81ED6100AAE288 /* TeamRadar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TeamRadar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BE6C3E11C81ED6100AAE288 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1BE6C3E31C81ED6100AAE288 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 				1BE6C3E51C81ED6100AAE288 /* TeamRadar.xcdatamodeld */,
 				1B351F211C8403F400716660 /* WindowController.swift */,
 				DC58D5AF1C890F9B00795579 /* Settings.swift */,
+				1BE2CDD51C8D330C0033E8F6 /* CustomSegue.swift */,
 			);
 			path = TeamRadar;
 			sourceTree = "<group>";
@@ -269,6 +272,7 @@
 				1BE6C3E41C81ED6100AAE288 /* ViewController.swift in Sources */,
 				1B351F221C8403F400716660 /* WindowController.swift in Sources */,
 				1BE6C3E71C81ED6100AAE288 /* TeamRadar.xcdatamodeld in Sources */,
+				1BE2CDD61C8D330C0033E8F6 /* CustomSegue.swift in Sources */,
 				1BE6C3E21C81ED6100AAE288 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
