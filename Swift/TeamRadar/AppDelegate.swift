@@ -18,13 +18,17 @@ import Cocoa
 import Foundation
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
     
     @IBOutlet var statusItemMenu: NSMenu!
     @IBOutlet var statusItemMenuStateItem: NSMenuItem!
     
     var statusItem: NSStatusItem? = nil
     var goTask: NSTask? = nil
+    
+    func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+        return true
+    }
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         statusItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSVariableStatusItemLength)
