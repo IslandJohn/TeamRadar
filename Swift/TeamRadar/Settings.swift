@@ -17,9 +17,9 @@ limitations under the License.
 import Foundation
 
 enum SettingsKey: String {
-    case USERNAME = "username"
+    case URL = "url"
+    case USER = "user"
     case PASSWORD = "password"
-    case SERVER = "server"
 }
 
 class Settings {

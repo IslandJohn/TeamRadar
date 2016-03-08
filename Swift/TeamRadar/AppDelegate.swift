@@ -22,13 +22,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
     
     @IBOutlet var statusItemMenu: NSMenu!
     @IBOutlet var statusItemMenuStateItem: NSMenuItem!
-    
+    @IBOutlet weak var segueConnectMenuItem: NSMenuItem!
+
     var statusItem: NSStatusItem? = nil
+    @IBOutlet weak var segueMenu: NSMenu!
     var goTask: NSTask? = nil
-    
-    func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
-        return true
-    }
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         statusItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSVariableStatusItemLength)
@@ -38,6 +36,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
         statusItem?.menu = statusItemMenu        
     }
 
+    func shouldPerformSegueWithIdentifier(identifier: String, sender: AnyObject?) -> Bool {
+        return true
+    }
+    
+    func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
+        let vc = segue.destinationController as! ViewController
+        vc.prefSaveButtonTitle = segue.identifier!
+    }
+    
     func eventTaskOutput(note: NSNotification) {
         let fh = note.object as! NSFileHandle
         
@@ -56,7 +63,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
     @IBAction func connectAction(sender: AnyObject) {
         let menuitem = sender as? NSMenuItem
         
-        if let username = Settings.get(SettingsKey.USERNAME), let password = Settings.get(SettingsKey.PASSWORD), let server = Settings.get(SettingsKey.SERVER) {
+        if let url = Settings.get(SettingsKey.URL) where url != "", let user = Settings.get(SettingsKey.USER) where user != "", let password = Settings.get(SettingsKey.PASSWORD) where password != ""  {
             if (goTask == nil || !goTask!.running) {
                 if (goTask == nil) {
                     goTask = NSTask()
@@ -76,7 +83,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
                     goTask!.standardError?.fileHandleForReading.waitForDataInBackgroundAndNotify()
                 }
                 
-                goTask?.arguments = [server, username, password]
+                goTask?.arguments = [url, user, password]
                 goTask?.launch()
                 
                 menuitem?.title = "Disconnect"
@@ -89,7 +96,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
                 statusItemMenuStateItem.title = "Not connected."
             }
         } else {
-            NSLog("User, pass, or server not set")
+            // some hackery
+            segueMenu.performActionForItemAtIndex(segueMenu.indexOfItem(segueConnectMenuItem))
         }
     }
     

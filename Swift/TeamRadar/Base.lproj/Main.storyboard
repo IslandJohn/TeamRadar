@@ -649,6 +649,8 @@
                 </application>
                 <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="TeamRadar" customModuleProvider="target">
                     <connections>
+                        <outlet property="segueConnectMenuItem" destination="6Ec-ar-yVx" id="O89-Vs-2LH"/>
+                        <outlet property="segueMenu" destination="QI4-dx-KTM" id="JBV-lk-DFA"/>
                         <outlet property="statusItemMenu" destination="A9P-Xf-OSs" id="2lZ-3v-5EO"/>
                         <outlet property="statusItemMenuStateItem" destination="qXn-9b-eAu" id="8W3-56-5y7"/>
                     </connections>
@@ -670,7 +672,7 @@
                             <modifierMask key="keyEquivalentModifierMask"/>
                             <connections>
                                 <action selector="connectAction:" target="Voe-Tx-rLC" id="YFt-Qi-7ZJ"/>
-                                <segue destination="XfG-lQ-9wD" kind="custom" customClass="CustomSegue" customModule="TeamRadar" customModuleProvider="target" id="1W3-9t-c5T"/>
+                                <segue destination="XfG-lQ-9wD" kind="modal" identifier="Save" id="ezv-5W-5hu"/>
                             </connections>
                         </menuItem>
                         <menuItem isSeparatorItem="YES" id="Zn3-39-RWZ"/>
@@ -678,6 +680,16 @@
                             <modifierMask key="keyEquivalentModifierMask"/>
                             <connections>
                                 <action selector="terminate:" target="rPt-NT-nkU" id="Ffb-V3-Art"/>
+                            </connections>
+                        </menuItem>
+                    </items>
+                </menu>
+                <menu id="QI4-dx-KTM" userLabel="SegueMenu">
+                    <items>
+                        <menuItem title="Connect..." id="6Ec-ar-yVx" userLabel="SegueConnectMenuItem">
+                            <modifierMask key="keyEquivalentModifierMask"/>
+                            <connections>
+                                <segue destination="XfG-lQ-9wD" kind="modal" identifier="Connect" id="0m2-3f-k2P"/>
                             </connections>
                         </menuItem>
                     </items>
@@ -704,10 +716,10 @@
             </objects>
             <point key="canvasLocation" x="-756" y="282"/>
         </scene>
-        <!--View Controller-->
+        <!--TeamRadar-->
         <scene sceneID="hIz-AP-VOD">
             <objects>
-                <viewController id="XfG-lQ-9wD" customClass="ViewController" customModule="TeamRadar" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController title="TeamRadar" showSeguePresentationStyle="single" id="XfG-lQ-9wD" customClass="ViewController" customModule="TeamRadar" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" id="m2S-Jp-Qdl">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="200"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -825,7 +837,7 @@ Gw
                     </view>
                     <connections>
                         <outlet property="prefPasswordText" destination="Apy-Fs-gMu" id="hze-nO-5Ws"/>
-                        <outlet property="prefSaveButton" destination="M5T-kA-e55" id="hba-RF-8Fi"/>
+                        <outlet property="prefSaveButton" destination="M5T-kA-e55" id="0ED-h0-VYZ"/>
                         <outlet property="prefUrlText" destination="GQA-nB-bmR" id="Jr7-hc-5wb"/>
                         <outlet property="prefUserText" destination="iyK-pm-29T" id="kVd-kS-Dq3"/>
                     </connections>
@@ -836,6 +848,6 @@ Gw
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="vcX-fl-2mb"/>
+        <segue reference="0m2-3f-k2P"/>
     </inferredMetricsTieBreakers>
 </document>

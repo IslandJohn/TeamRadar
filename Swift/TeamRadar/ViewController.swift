@@ -18,6 +18,8 @@ import Cocoa
 
 class ViewController: NSViewController, NSUserNotificationCenterDelegate {
 
+    var prefSaveButtonTitle: String!
+    
     @IBOutlet weak var prefUrlText: NSTextField!
     @IBOutlet weak var prefUserText: NSTextField!
     @IBOutlet weak var prefPasswordText: NSSecureTextField!
@@ -26,9 +28,10 @@ class ViewController: NSViewController, NSUserNotificationCenterDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        prefUrlText.stringValue = Settings.get(SettingsKey.SERVER) ?? ""
-        prefUserText.stringValue = Settings.get(SettingsKey.USERNAME) ?? ""
+        prefUrlText.stringValue = Settings.get(SettingsKey.URL) ?? ""
+        prefUserText.stringValue = Settings.get(SettingsKey.USER) ?? ""
         prefPasswordText.stringValue = Settings.get(SettingsKey.PASSWORD) ?? ""
+        prefSaveButton.title = prefSaveButtonTitle
     }
 
     override var representedObject: AnyObject? {
@@ -38,13 +41,15 @@ class ViewController: NSViewController, NSUserNotificationCenterDelegate {
     }
     
     @IBAction func cancelAction(sender: AnyObject) {
-        [self .dismissViewController(self)];
+        self.dismissController(self)
     }
     
     @IBAction func saveAction(sender: AnyObject) {
-        Settings.set(SettingsKey.USERNAME, value: prefUserText.stringValue)
+        Settings.set(SettingsKey.URL, value: prefUrlText.stringValue)
+        Settings.set(SettingsKey.USER, value: prefUserText.stringValue)
         Settings.set(SettingsKey.PASSWORD, value: prefPasswordText.stringValue)
-        Settings.set(SettingsKey.SERVER, value: prefUrlText.stringValue)
+
+        self.dismissController(self)
     }
     
     func showNotification() -> Void {
