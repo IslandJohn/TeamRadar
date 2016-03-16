@@ -16,6 +16,9 @@
 		1BE6C3EC1C81ED6100AAE288 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1BE6C3EA1C81ED6100AAE288 /* Main.storyboard */; };
 		1BE6C3F71C81ED6100AAE288 /* TeamRadarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C3F61C81ED6100AAE288 /* TeamRadarTests.swift */; };
 		1BE6C4021C81ED6100AAE288 /* TeamRadarUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BE6C4011C81ED6100AAE288 /* TeamRadarUITests.swift */; };
+		DC32C7A91C98E2BF00D40633 /* teamradar in Resources */ = {isa = PBXBuildFile; fileRef = 1B84C7D71C8D2F0D00A44E60 /* teamradar */; };
+		DC32C7AC1C98E3F500D40633 /* TeamRadarParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC32C7AB1C98E3F500D40633 /* TeamRadarParser.swift */; };
+		DC32C7AD1C98E9A100D40633 /* TeamRadarParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC32C7AB1C98E3F500D40633 /* TeamRadarParser.swift */; };
 		DC58D5B01C890F9B00795579 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC58D5AF1C890F9B00795579 /* Settings.swift */; };
 /* End PBXBuildFile section */
 
@@ -52,6 +55,7 @@
 		1BE6C3FD1C81ED6100AAE288 /* TeamRadarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TeamRadarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1BE6C4011C81ED6100AAE288 /* TeamRadarUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamRadarUITests.swift; sourceTree = "<group>"; };
 		1BE6C4031C81ED6100AAE288 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DC32C7AB1C98E3F500D40633 /* TeamRadarParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TeamRadarParser.swift; sourceTree = "<group>"; };
 		DC58D5AF1C890F9B00795579 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -104,6 +108,7 @@
 		1BE6C3E01C81ED6100AAE288 /* TeamRadar */ = {
 			isa = PBXGroup;
 			children = (
+				DC32C7AA1C98E2E300D40633 /* Parser */,
 				1BE6C3E11C81ED6100AAE288 /* AppDelegate.swift */,
 				1BE6C3E31C81ED6100AAE288 /* ViewController.swift */,
 				1BE6C3E81C81ED6100AAE288 /* Assets.xcassets */,
@@ -132,6 +137,14 @@
 				1BE6C4031C81ED6100AAE288 /* Info.plist */,
 			);
 			path = TeamRadarUITests;
+			sourceTree = "<group>";
+		};
+		DC32C7AA1C98E2E300D40633 /* Parser */ = {
+			isa = PBXGroup;
+			children = (
+				DC32C7AB1C98E3F500D40633 /* TeamRadarParser.swift */,
+			);
+			name = Parser;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -267,6 +280,7 @@
 			files = (
 				DC58D5B01C890F9B00795579 /* Settings.swift in Sources */,
 				1BE6C3E41C81ED6100AAE288 /* ViewController.swift in Sources */,
+				DC32C7AC1C98E3F500D40633 /* TeamRadarParser.swift in Sources */,
 				1B351F221C8403F400716660 /* WindowController.swift in Sources */,
 				1BE6C3E71C81ED6100AAE288 /* TeamRadar.xcdatamodeld in Sources */,
 				1BE6C3E21C81ED6100AAE288 /* AppDelegate.swift in Sources */,
@@ -277,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DC32C7AD1C98E9A100D40633 /* TeamRadarParser.swift in Sources */,
 				1BE6C3F71C81ED6100AAE288 /* TeamRadarTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
