@@ -91,45 +91,47 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming, NSUserNot
     }
     
     func eventTaskTerminate() {
+        connectAction(statusItemMenuConnectItem)
     }
     
     @IBAction func connectAction(sender: AnyObject) {
         let menuitem = sender as? NSMenuItem
         
         if let url = Settings.get(SettingsKey.URL) where url != "", let user = Settings.get(SettingsKey.USER) where user != "", let password = Settings.get(SettingsKey.PASSWORD) where password != ""  {
-            if (goTask == nil || !goTask!.running) {
-                if (goTask == nil) {
-                    goTask = NSTask()
+            if (goTask == nil) {
+                goTask = NSTask()
                     
-                    goTask!.launchPath = NSBundle.mainBundle().pathForResource("teamradar", ofType: nil)
-                    goTask!.standardInput = NSPipe()
-                    goTask!.standardOutput = NSPipe()
-                    goTask!.standardError = NSPipe()
-                    goTask?.terminationHandler = {(task: NSTask) -> Void in
-                        self.eventTaskTerminate()
-                    }
-                    
-                    NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskOutput:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardOutput?.fileHandleForReading)
-                    NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskError:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardError?.fileHandleForReading)
-                    
-                    goTask!.standardOutput?.fileHandleForReading.waitForDataInBackgroundAndNotify()
-                    goTask!.standardError?.fileHandleForReading.waitForDataInBackgroundAndNotify()
-                }
-                
+                goTask!.launchPath = NSBundle.mainBundle().pathForResource("teamradar", ofType: nil)
                 goTask?.arguments = [url, user, password]
+                goTask!.standardInput = NSPipe()
+                goTask!.standardOutput = NSPipe()
+                goTask!.standardError = NSPipe()
+                goTask?.terminationHandler = {(task: NSTask) -> Void in
+                    self.eventTaskTerminate()
+                }
+                    
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskOutput:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardOutput?.fileHandleForReading)
+                NSNotificationCenter.defaultCenter().addObserver(self, selector: "eventTaskError:", name: NSFileHandleDataAvailableNotification, object: goTask!.standardError?.fileHandleForReading)
+                    
+                goTask!.standardOutput?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+                goTask!.standardError?.fileHandleForReading.waitForDataInBackgroundAndNotify()
+                
                 goTask?.launch()
                 
                 menuitem?.title = "Disconnect"
                 statusItemMenuStateItem.title = "No rooms."
             } else {
-                goTask?.terminate()
-                goTask = nil
-                
-                menuitem?.title = "Connect..."
-                statusItemMenuStateItem.title = "Not connected."
+                if (goTask!.running) { // trigger termination, but don't clean up yet
+                    goTask?.terminate()
+                }
+                else { // this is being called from the terminate event, so clean up
+                    goTask = nil
+                    menuitem?.title = "Connect..."
+                    statusItemMenuStateItem.title = "Not connected."
+                }
             }
         } else {
-            // some hackery
+            // some hackery to show the preferences dialog via a segue if things are not set up
             segueConnectMenuItem.menu?.performActionForItemAtIndex((segueConnectMenuItem.menu?.indexOfItem(segueConnectMenuItem))!)
         }
     }
