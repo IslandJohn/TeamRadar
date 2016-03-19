@@ -1,17 +1,16 @@
 # TeamRadar
 
-A poller to interact with TFS Team Rooms api.  
+A CLI utility to interact with TFS team rooms REST API, and some GUI tools for notifications.  
 
 [https://www.visualstudio.com/integrate/api/chat/overview](https://www.visualstudio.com/integrate/api/chat/overview)
-
 
 ## Building
 
 ```
-mkdir $HOME/go
 export GOPATH=$HOME/go
+mkdir -p $GOPATH
 go get github.com/IslandJohn/TeamRadar/Go/teamradar
-cd $HOME/go/src/github.com/IslandJohn/TeamRadar/Go/teamradar
+cd $GOPATH/src/github.com/IslandJohn/TeamRadar/Go/teamradar
 go install
 ```
 
@@ -19,6 +18,6 @@ go install
 
 ```
 cd $GOPATH/bin
-
-./teamradar https://vso_account.visualstudio.com/defaultcollection youremail@example.com xnOb.2nqlNDbPgRw9cxnOb.2nqlNDbPgRw9c
+./teamradar https://<account>.visualstudio.com/defaultcollection <email> <token>
+./teamradar https://<tfs>/<collection> <user> <password>
 ```
