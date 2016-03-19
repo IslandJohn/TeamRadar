@@ -18,7 +18,7 @@ import Cocoa
 import Foundation
 
 @NSApplicationMain
-class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
+class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming, NSUserNotificationCenterDelegate {
     
     @IBOutlet weak var statusItemMenu: NSMenu!
     @IBOutlet weak var statusItemMenuConnectItem: NSMenuItem!
@@ -27,6 +27,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
 
     var statusItem: NSStatusItem? = nil
     var goTask: NSTask? = nil
+    
+    var teamRadarParser = TeamRadarParser()
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
         statusItem = NSStatusBar.systemStatusBar().statusItemWithLength(NSVariableStatusItemLength)
@@ -54,6 +56,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
     
     func eventTaskOutput(note: NSNotification) {
         let fh = note.object as! NSFileHandle
+        
+        let data = fh.availableData
+        if data.length > 0 {
+            if let str = NSString(data: data, encoding: NSUTF8StringEncoding) {
+                let lines = str.componentsSeparatedByString("\n")
+                
+                if(lines.count > 0) {
+                    for (_,line) in lines.enumerate() {
+                        let json = self.teamRadarParser.extractJSONFromLine(line)
+                        
+                        guard json != "" else { continue }
+                        
+                        let jsonDict = self.teamRadarParser.convertJSONStringToDictionary(json)
+                        
+                        guard let jDict = jsonDict else { continue }
+                        guard jDict is NSDictionary else { continue }
+                        
+                        if let content = jDict["Content"] where content != nil {
+                            showNotification(content as! String)
+                        }
+                    }
+                }
+            }
+        }
         
         fh.waitForDataInBackgroundAndNotify()
     }
@@ -251,6 +277,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
         }
         // If we got here, it is time to quit.
         return .TerminateNow
+    }
+    
+    func showNotification(content:String) -> Void {
+        let unc = NSUserNotificationCenter.defaultUserNotificationCenter()
+        unc.delegate = self
+        let notification = NSUserNotification()
+        notification.title = "TeamRadar"
+        notification.informativeText = content
+        unc.deliverNotification(notification)
+    }
+    
+    func userNotificationCenter(center: NSUserNotificationCenter, shouldPresentNotification notification: NSUserNotification) -> Bool {
+        return true
     }
 
 }

@@ -16,7 +16,7 @@ limitations under the License.
 
 import Cocoa
 
-class ViewController: NSViewController, NSUserNotificationCenterDelegate {
+class ViewController: NSViewController {
 
     var prefSaveButtonTitle: String!
     var prefSaveButtonMenuItem: NSMenuItem?
@@ -55,19 +55,6 @@ class ViewController: NSViewController, NSUserNotificationCenterDelegate {
             prefSaveButtonMenuItem?.menu?.performActionForItemAtIndex((prefSaveButtonMenuItem?.menu?.indexOfItem(prefSaveButtonMenuItem!))!)
         }
         
-    }
-    
-    func showNotification() -> Void {
-        let unc = NSUserNotificationCenter.defaultUserNotificationCenter()
-        unc.delegate = self
-        let notification = NSUserNotification()
-        notification.title = "Test from Swift"
-        notification.informativeText = "The body of this Swift notification"
-        unc.deliverNotification(notification)
-    }
-    
-    func userNotificationCenter(center: NSUserNotificationCenter, shouldPresentNotification notification: NSUserNotification) -> Bool {
-        return true
     }
 }
 

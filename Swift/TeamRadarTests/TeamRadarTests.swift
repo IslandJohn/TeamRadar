@@ -21,16 +21,28 @@ class TeamRadarTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock {
-            // Put the code you want to measure the time of here.
-        }
+    func testExtractJsonFromLine() {
+        let str = "messages new 8214 828bab5f-0f36-4e8f-bbc2-e98cbfe67e8f 6336 {\"Id\":6336,\"Content\":\"asdjfsj asdfjasd asjdf\",\"MessageType\":\"normal\",\"PostedTime\":\"2016-03-16T00:42:29.367Z\",\"PostedRoomId\":8214,\"PostedBy\":{\"Id\":\"828bab5f-0f36-4e8f-bbc2-e98cbfe67e8f\",\"DisplayName\":\"Felix\",\"Url\":\"https://islandjohn.vssps.visualstudio.com/_apis/Identities/828bab5f-0f36-4e8f-bbc2-e98cbfe67e8f\",\"ImageUrl\":\"https://islandjohn.visualstudio.com/DefaultCollection/_api/_common/identityImage?id=828bab5f-0f36-4e8f-bbc2-e98cbfe67e8f\"}}"
+        let justJson = "{\"Id\":6336,\"Content\":\"asdjfsj asdfjasd asjdf\",\"MessageType\":\"normal\",\"PostedTime\":\"2016-03-16T00:42:29.367Z\",\"PostedRoomId\":8214,\"PostedBy\":{\"Id\":\"828bab5f-0f36-4e8f-bbc2-e98cbfe67e8f\",\"DisplayName\":\"Felix\",\"Url\":\"https://islandjohn.vssps.visualstudio.com/_apis/Identities/828bab5f-0f36-4e8f-bbc2-e98cbfe67e8f\",\"ImageUrl\":\"https://islandjohn.visualstudio.com/DefaultCollection/_api/_common/identityImage?id=828bab5f-0f36-4e8f-bbc2-e98cbfe67e8f\"}}"
+        
+        let parser = TeamRadarParser()
+        let json = parser.extractJSONFromLine(str)
+        
+        XCTAssertEqual(json, justJson)
+        
+        let jsonDict: AnyObject? = parser.convertJSONStringToDictionary(json)
+        
+        guard let jDict = jsonDict else { XCTFail("JSON Dictionary was nil"); return }
+        guard jDict is NSDictionary else { XCTFail("JSON is not a NSDictionary"); return }
+        
+        let jsonDictionary = jDict as! NSDictionary
+        
+        XCTAssertEqual(jsonDictionary["MessageType"] as? String, "normal")
+        
+        let postedByDict: NSDictionary = jsonDictionary["PostedBy"] as! NSDictionary
+        
+        XCTAssertEqual(postedByDict["DisplayName"] as? String, "Felix")
+        
     }
     
 }
