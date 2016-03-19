@@ -75,7 +75,7 @@ var restEndpoint []string = []string{
 	"%s/_apis/projects?api-version=1.0",
 	"%s/_apis/chat/rooms?api-version=1.0",
 	"%s/_apis/chat/rooms/%d/users?api-version=1.0",
-	"%s/_apis/chat/rooms/%d/users/%s?api-version={version}",
+	"%s/_apis/chat/rooms/%d/users/%s?api-version=1.0",
 	"%s/_apis/chat/rooms/%d/messages?api-version=1.0",
 	"%s/_apis/chat/rooms/%d/messages?$filter=PostedTime+ge+%s&api-version=1.0",
 }
@@ -154,13 +154,13 @@ func (a *Api) GetRoomUsers(room *Room) (*RoomUsers, error) {
 }
 
 // join a room
-func (a *Api) JoinRoom(room *Room) error {
+func (a *Api) JoinRoom(roomId int) error {
 	json, err := json.Marshal(a.LoginAccount)
 	if err != nil {
 		return err
 	}
 
-	_, _, err = a.restClient.MakeRequest("PUT", fmt.Sprintf(restEndpoint[3], a.restBase, room.Id, a.LoginAccount.UserId), string(json), http.StatusNoContent)
+	_, _, err = a.restClient.MakeRequest("PUT", fmt.Sprintf(restEndpoint[3], a.restBase, roomId, a.LoginAccount.UserId), string(json), http.StatusNoContent)
 	if err != nil {
 		return err
 	}
@@ -169,8 +169,8 @@ func (a *Api) JoinRoom(room *Room) error {
 }
 
 // leave a room
-func (a *Api) LeaveRoom(room *Room) error {
-	_, _, err := a.restClient.MakeRequest("DELETE", fmt.Sprintf(restEndpoint[3], a.restBase, room.Id, a.LoginAccount.UserId), "", http.StatusNoContent)
+func (a *Api) LeaveRoom(roomId int) error {
+	_, _, err := a.restClient.MakeRequest("DELETE", fmt.Sprintf(restEndpoint[3], a.restBase, roomId, a.LoginAccount.UserId), "", http.StatusNoContent)
 	if err != nil {
 		return err
 	}
@@ -179,7 +179,7 @@ func (a *Api) LeaveRoom(room *Room) error {
 }
 
 // create a message in a room
-func (a *Api) SendRoomMessage(room *Room, msg string) (*RoomMessage, error) {
+func (a *Api) SendRoomMessage(roomId int, msg string) (*RoomMessage, error) {
 	return nil, nil
 }
 

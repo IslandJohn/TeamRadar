@@ -650,8 +650,8 @@
                 <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="TeamRadar" customModuleProvider="target">
                     <connections>
                         <outlet property="segueConnectMenuItem" destination="6Ec-ar-yVx" id="O89-Vs-2LH"/>
-                        <outlet property="segueMenu" destination="QI4-dx-KTM" id="JBV-lk-DFA"/>
                         <outlet property="statusItemMenu" destination="A9P-Xf-OSs" id="2lZ-3v-5EO"/>
+                        <outlet property="statusItemMenuConnectItem" destination="ums-HQ-nff" id="fYk-pv-Qlg"/>
                         <outlet property="statusItemMenuStateItem" destination="qXn-9b-eAu" id="8W3-56-5y7"/>
                     </connections>
                 </customObject>

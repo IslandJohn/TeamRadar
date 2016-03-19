@@ -19,7 +19,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/tfs"
 	"github.com/IslandJohn/TeamRadar/Go/teamradar/trace"
@@ -51,47 +50,51 @@ func main() {
 	go pollCommandInterface(&recv, &quit)
 
 	for event := range recv {
-		if command := event.(string); strings.HasPrefix(command, "interface") {
-			_, action, _, err := tokenizeEvent(command)
-			if err != nil {
-				trace.Log(err)
-			}
+		if origin, action, params := tokenizeEvent(event.(string)); origin == "interface" {
 			if action == "error" || action == "exit" || action == "logout" || action == "quit" {
 				close(quit)
 				return
+			} else {
+				roomParam, message := popToken(params)
+				room, err := strconv.Atoi(roomParam)
+
+				if err == nil {
+					if action == "join" {
+						err = tfsApi.JoinRoom(room)
+					} else if action == "leave" {
+						err = tfsApi.LeaveRoom(room)
+					} else if action == "send" {
+						_, err = tfsApi.SendRoomMessage(room, message)
+					}
+				}
+
+				if err != nil {
+					trace.Log(err)
+				}
 			}
-			
 		} else {
 			fmt.Println(event)
 		}
 	}
 }
 
-// return the routine, action, room, user, message of an event
-func tokenizeEvent(event string) (string, string, int, error) {
-	routine := ""
-	action := ""
-	room := 0
-	err := error(nil)
-	fields := strings.SplitN(event, " ", 3)
+// return the next token
+func popToken(str string) (string, string) {
+	fields := strings.SplitN(str, " ", 2)
 
-	if len(fields) >= 1 {
-		routine = fields[0]
+	if len(fields) <= 1 {
+		return fields[0], ""
 	}
 
-	if len(fields) >= 2 {
-		action = fields[1]
-	}
+	return fields[0], fields[1]
+}
 
-	if len(fields) >= 3 {
-		if action == "error" {
-			err = errors.New(fields[2])
-		} else {
-			room, _ = strconv.Atoi(fields[2])
-		}
-	}
+// tokenize an event into common pieces
+func tokenizeEvent(event string) (string, string, string) {
+	origin, command := popToken(event)
+	action, params := popToken(command)
 
-	return routine, action, room, err
+	return origin, action, params;
 }
 
 // pulls the account information of the user
@@ -177,13 +180,12 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 
 			timer.Reset(delay)
 		case event := <-roomRecv: // relay send or clean up from a routine that errored
-			_, action, room, err := tokenizeEvent(event.(string))
-			if err != nil {
-				trace.Log(err)
-			}
+			_, action, params := tokenizeEvent(event.(string))
 			if action == "error" { // routine error
+				room, _ := strconv.Atoi(params)
 				quit, ok := roomQuit[room]
-				if ok { // cleanup
+
+				if ok { // clean up routines
 					close(*quit)
 					delete(roomMap, room)
 					delete(roomQuit, room)

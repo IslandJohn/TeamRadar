@@ -20,12 +20,12 @@ import Foundation
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
     
-    @IBOutlet var statusItemMenu: NSMenu!
-    @IBOutlet var statusItemMenuStateItem: NSMenuItem!
+    @IBOutlet weak var statusItemMenu: NSMenu!
+    @IBOutlet weak var statusItemMenuConnectItem: NSMenuItem!
+    @IBOutlet weak var statusItemMenuStateItem: NSMenuItem!
     @IBOutlet weak var segueConnectMenuItem: NSMenuItem!
 
     var statusItem: NSStatusItem? = nil
-    @IBOutlet weak var segueMenu: NSMenu!
     var goTask: NSTask? = nil
     
     func applicationDidFinishLaunching(aNotification: NSNotification) {
@@ -42,7 +42,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
     
     func prepareForSegue(segue: NSStoryboardSegue, sender: AnyObject?) {
         let vc = segue.destinationController as! ViewController
+        
         vc.prefSaveButtonTitle = segue.identifier!
+        if (segue.identifier == "Connect") {
+            vc.prefSaveButtonMenuItem = statusItemMenuConnectItem
+        }
+        else {
+            vc.prefSaveButtonMenuItem = nil            
+        }
     }
     
     func eventTaskOutput(note: NSNotification) {
@@ -97,7 +104,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSSeguePerforming {
             }
         } else {
             // some hackery
-            segueMenu.performActionForItemAtIndex(segueMenu.indexOfItem(segueConnectMenuItem))
+            segueConnectMenuItem.menu?.performActionForItemAtIndex((segueConnectMenuItem.menu?.indexOfItem(segueConnectMenuItem))!)
         }
     }
     

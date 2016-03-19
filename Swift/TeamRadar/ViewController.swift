@@ -19,6 +19,7 @@ import Cocoa
 class ViewController: NSViewController, NSUserNotificationCenterDelegate {
 
     var prefSaveButtonTitle: String!
+    var prefSaveButtonMenuItem: NSMenuItem?
     
     @IBOutlet weak var prefUrlText: NSTextField!
     @IBOutlet weak var prefUserText: NSTextField!
@@ -27,7 +28,7 @@ class ViewController: NSViewController, NSUserNotificationCenterDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         prefUrlText.stringValue = Settings.get(SettingsKey.URL) ?? ""
         prefUserText.stringValue = Settings.get(SettingsKey.USER) ?? ""
         prefPasswordText.stringValue = Settings.get(SettingsKey.PASSWORD) ?? ""
@@ -50,6 +51,10 @@ class ViewController: NSViewController, NSUserNotificationCenterDelegate {
         Settings.set(SettingsKey.PASSWORD, value: prefPasswordText.stringValue)
 
         self.dismissController(self)
+        if (prefSaveButtonMenuItem != nil) {
+            prefSaveButtonMenuItem?.menu?.performActionForItemAtIndex((prefSaveButtonMenuItem?.menu?.indexOfItem(prefSaveButtonMenuItem!))!)
+        }
+        
     }
     
     func showNotification() -> Void {
