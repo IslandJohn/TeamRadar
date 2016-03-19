@@ -95,7 +95,7 @@ type Api struct {
 func NewApi(url string, user string, password string) (*Api, error) {
 	api := Api{
 		restBase:   url,
-		restClient: rest.NewClient(),
+		restClient: rest.NewClient(3),
 	}
 	api.restClient.SetLogin(user, password)
 
@@ -180,6 +180,14 @@ func (a *Api) LeaveRoom(roomId int) error {
 
 // create a message in a room
 func (a *Api) SendRoomMessage(roomId int, msg string) (*RoomMessage, error) {
+	message := RoomMessage {
+		Content: msg,
+	}
+	json, err := json.Marshal(message)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(json))
 	return nil, nil
 }
 

@@ -18,23 +18,27 @@ package rest
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // REST client
 type Client struct {
 	transport http.RoundTripper
+	tries     int
 	user      string
 	password  string
 }
 
-func NewClient() *Client {
+func NewClient(errs int) *Client {
 	return &Client{
 		transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 		},
+		tries: errs,
 	}
 }
 
@@ -46,29 +50,38 @@ func (c *Client) SetLogin(u string, p string) {
 
 // make a request, expect a code, and return the body or error
 func (c *Client) MakeRequest(verb string, url string, body string, code int) (map[string][]string, []byte, error) {
-	request, err := http.NewRequest(verb, url, strings.NewReader(body))
-	if err != nil {
-		return nil, nil, err
-	}
-	if c.user != "" {
-		request.SetBasicAuth(c.user, c.password)
-	}
-	request.Header.Set("Content-Type", "application/json")
-	
-	response, err := c.transport.RoundTrip(request)
-	if err != nil {
-		return nil, nil, err
-	}
+	numErrors := 0
+	for {
+		request, err := http.NewRequest(verb, url, strings.NewReader(body))
+		if err != nil {
+			return nil, nil, err
+		}
+		if c.user != "" {
+			request.SetBasicAuth(c.user, c.password)
+		}
+		request.Header.Set("Content-Type", "application/json")
+		
+		response, err := c.transport.RoundTrip(request)
+		if err != nil {
+			numErrors++
+			if numErrors >= c.tries {
+				return nil, nil, err
+			}
+			time.Sleep(time.Duration(numErrors) * time.Second)
+			continue
+		}
+		numErrors = 0
 
-	defer response.Body.Close()
-	if response.StatusCode != code {
-		return nil, nil, errors.New(response.Status)
-	}
+		defer response.Body.Close()
+		if response.StatusCode != code {
+			return nil, nil, errors.New(fmt.Sprintf("%d %s", response.StatusCode, response.Status))
+		}
 
-	ret, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, nil, err
-	}
+		ret, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return nil, nil, err
+		}
 
-	return response.Header, ret, err
+		return response.Header, ret, err
+	}
 }

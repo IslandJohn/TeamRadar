@@ -110,11 +110,10 @@ func pullTfsAccount(tfsApi *tfs.Api) (interface{}, error) {
 // routine to poll room information at variable intervals
 func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
-	numErrors := 0
 	roomRecv := make(chan interface{})          // routines started here we'll be proxied
 	roomQuit := make(map[int]*chan interface{}) // we'll close this to have routines we started return
 	roomMap := make(map[int]*tfs.Room)
-	defer close(roomRecv)
+	// defer close(roomRecv) // TODO: will cause a panic if network errors cause this to be closed before other routines quit, but will block a routine if we don't
 
 	timer := time.NewTimer(delay)
 	defer timer.Stop()
@@ -129,18 +128,12 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 			rooms, err := tfsApi.GetRooms()
 			if err != nil {
 				trace.Log(err)
-				numErrors++
-				if numErrors >= 3 {
-					for _, quit := range roomQuit { // clean up on error
-						close(*quit) // routines should return on this being closed
-					}
-					*send <- fmt.Sprintf("rooms error %s", err)
-					return
+				for _, quit := range roomQuit { // clean up on error
+					close(*quit) // routines should return on this being closed
 				}
-				time.Sleep(time.Duration(numErrors) * time.Second)
-				continue
+				*send <- fmt.Sprintf("rooms error %s", err)
+				return
 			}
-			numErrors = 0
 
 			// added
 			newRoomMap := make(map[int]*tfs.Room)
@@ -206,7 +199,6 @@ func pollTfsRooms(tfsApi *tfs.Api, min time.Duration, max time.Duration, send *c
 // routine to poll user information for a given room at variable intervals
 func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
-	numErrors := 0
 	userMap := make(map[string]*tfs.RoomUser)
 
 	timer := time.NewTimer(delay)
@@ -222,15 +214,9 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 			users, err := tfsApi.GetRoomUsers(room)
 			if err != nil {
 				trace.Log(err)
-				numErrors++
-				if numErrors >= 3 {
-					*send <- fmt.Sprintf("users error %d %s", room.Id, err)
-					return
-				}
-				time.Sleep(time.Duration(numErrors) * time.Second)
-				continue
+				*send <- fmt.Sprintf("users error %d %s", room.Id, err)
+				return
 			}
-			numErrors = 0
 
 			// added
 			newUserMap := make(map[string]*tfs.RoomUser)
@@ -287,7 +273,6 @@ func pollTfsRoomUsers(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max ti
 // routine to poll message information for a given room at variable intervals
 func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max time.Duration, send *chan interface{}, recv *chan interface{}) {
 	delay := min
-	numErrors := 0
 	messageMap := make(map[int]*tfs.RoomMessage)
 	messageLast := room.LastActivity
 
@@ -304,15 +289,9 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 			messages, err := tfsApi.GetRoomMessages(room, messageLast)
 			if err != nil {
 				trace.Log(err)
-				numErrors++
-				if numErrors >= 3 {
-					*send <- fmt.Sprintf("messages error %d %s", room.Id, err)
-					return
-				}
-				time.Sleep(time.Duration(numErrors) * time.Second)
-				continue
+				*send <- fmt.Sprintf("messages error %d %s", room.Id, err)
+				return
 			}
-			numErrors = 0
 
 			// new
 			for _, message := range messages.Value {
@@ -341,7 +320,6 @@ func pollTfsRoomMessages(room *tfs.Room, tfsApi *tfs.Api, min time.Duration, max
 
 // read standard input for commands
 func pollCommandInterface(send *chan interface{}, recv *chan interface{}) {
-	numErrors := 0
 	input := make(chan interface{})
 	defer close(input)
 
@@ -353,15 +331,9 @@ func pollCommandInterface(send *chan interface{}, recv *chan interface{}) {
 			line, _, err := stdin.ReadLine()
 
 			if err != nil {
-				numErrors++
-				if numErrors >= 3 {
-					input <- err
-					return
-				}
-				time.Sleep(time.Duration(numErrors) * time.Second)
-				continue
+				input <- err
+				return
 			}
-			numErrors = 0
 
 			input <- string(line)
 		}
