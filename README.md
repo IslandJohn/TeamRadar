@@ -1,6 +1,6 @@
 # TeamRadar
 
-A poller to interact with TFS Team Rooms api.  
+A CLI utility to interact with TFS team rooms REST API, and some GUI tools for notifications.  
 
 [https://www.visualstudio.com/integrate/api/chat/overview](https://www.visualstudio.com/integrate/api/chat/overview)
 
