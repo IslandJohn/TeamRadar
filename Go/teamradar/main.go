@@ -94,7 +94,7 @@ func tokenizeEvent(event string) (string, string, string) {
 	origin, command := popToken(event)
 	action, params := popToken(command)
 
-	return origin, action, params;
+	return origin, action, params
 }
 
 // pulls the account information of the user
