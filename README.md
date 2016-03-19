@@ -8,7 +8,7 @@ A CLI utility to interact with TFS team rooms REST API, and some GUI tools for n
 
 ```
 export GOPATH=$HOME/go
-mkdir -p $HOME/go
+mkdir -p $GOPATH
 go get github.com/IslandJohn/TeamRadar/Go/teamradar
 cd $GOPATH/src/github.com/IslandJohn/TeamRadar/Go/teamradar
 go install
