@@ -1,10 +1,14 @@
 # TeamRadar
 
-A CLI utility to interact with TFS team rooms REST API, and some GUI tools for notifications.  
+TeamRadar is a polyglot project to help collaborate within multiple Team Foundation Server (TFS) and Visual Studio Team Services (VSTS) team rooms simultaenously. The CLI utility polls all available team rooms via REST APIs to generate events. The GUI apps use the CLI to listen to the events and display notifications.  
 
 [https://www.visualstudio.com/integrate/api/chat/overview](https://www.visualstudio.com/integrate/api/chat/overview)
 
-## Building
+## Command Line Interface (CLI)
+
+The CLI is written in Go and connects to TFS/VSTS, reads commands from stdin, writes events to stdout, and logs exceptions to stderr.
+
+### Building
 
 ```
 export GOPATH=$HOME/go
@@ -14,10 +18,20 @@ cd $GOPATH/src/github.com/IslandJohn/TeamRadar/Go/teamradar
 go install
 ```
 
-## Usage 
+### Usage 
 
 ```
 cd $GOPATH/bin
 ./teamradar https://<account>.visualstudio.com/defaultcollection <email> <token>
 ./teamradar https://<tfs>/<collection> <user> <password>
 ```
+
+## Graphical User Interface (GUI)
+
+### OS X
+
+It's a work in progress.
+
+### Windows
+
+It's planned.
