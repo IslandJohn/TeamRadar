@@ -26,6 +26,15 @@ cd $GOPATH/bin
 ./teamradar https://<tfs>/<collection> <user> <password>
 ```
 
+### Commands
+
+```
+join <roomid>
+leave <roomid>
+send <roomid> <message>
+exit|logout|quit
+```
+
 ## Graphical User Interface (GUI)
 
 ### OS X
